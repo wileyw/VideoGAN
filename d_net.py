@@ -1,6 +1,4 @@
 """
-# learning rate for the discriminator model
-LRATE_D = 0.02
 # padding for convolutions in the discriminator model
 PADDING_D = 'VALID'
 # feature maps for each convolution of each scale network in the discriminator model
@@ -31,23 +29,19 @@ class DScaleNet(nn.Module):
     def __init__(self, kernel_sizes, conv_layer_fms, scale_fc_layer_sizes):
         super(DScaleNet, self).__init__()
 
-        self.conv_layers = nn.ModuleList([])
-        self.fc_layers = nn.ModuleList([])
+        self.conv_layers = nn.ModuleList()
+        self.fc_layers = nn.ModuleList()
 
         # Define conv blocks.
         for i in range(len(kernel_sizes)):
-            self.conv_layers.append(
-                nn.Conv2d(conv_layer_fms[i],
-                          conv_layers_fms[i+1],
-                          kernel_sizes[i])
-                )
+            self.conv_layers.append(nn.Conv2d(conv_layer_fms[i],
+                                              conv_layer_fms[i+1],
+                                              kernel_sizes[i]))
 
         # Define fc blocks.
         for i in range(len(scale_fc_layer_sizes) - 1):
-            self.fc_layers.append(
-                nn.Linear(scale_fc_layer_sizes[i],
-                          scale_fc_layer_sizes[i+1])
-                )
+            self.fc_layers.append(nn.Linear(scale_fc_layer_sizes[i],
+                                            scale_fc_layer_sizes[i+1]))
 
     def forward(self, x):
         # Run convolutions.
@@ -66,9 +60,22 @@ class DScaleNet(nn.Module):
         return x
 
 
-class DiscriminatorNet(nn.Module):
-    def __init__(self):
-        super(DiscriminatorNet, self).__init__()
+class DiscriminatorModel(nn.Module):
+    def __init__(self,
+                 kernel_sizes_list,
+                 conv_layer_fms_list,
+                 scale_fc_layer_sizes_list):
+        super(DiscriminatorModel, self).__init__()
+
+        self.scale_nets = nn.ModuleList()
+        for (kernel_sizes,
+             conv_layer_fms,
+             scale_fc_layer_sizes) in zip(kernel_sizes_list,
+                                          conv_layer_fms_list,
+                                          scale_fc_layer_sizes_list):
+             self.scale_nets.append(DScaleNet(kernel_sizes,
+                                              conv_layer_fms,
+                                              scale_fc_layer_sizes))
 
     def forward(self, x):
-        pass
+        return [scale_net(x) for scale_net in self.scale_nets]
