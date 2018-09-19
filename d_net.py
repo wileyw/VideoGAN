@@ -83,7 +83,7 @@ class DScaleNet(nn.Module):
 
 class DiscriminatorModel(nn.Module):
     def __init__(self,
-                 img_height=32, img_width=32,
+                 img_height=IMG_H, img_width=IMG_W,
                  kernel_sizes_list=SCALE_KERNEL_SIZES_D,
                  conv_layer_fms_list=SCALE_CONV_FMS_D,
                  scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D):
