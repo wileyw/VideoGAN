@@ -58,7 +58,8 @@ class DScaleNet(nn.Module):
         # Add fc layer to convert max_pool layer to compatible initial flat size.
         img_height /= 2
         img_width /= 2
-        scale_fc_layer_sizes.insert(0, img_height * img_width * conv_layer_fms[-1])
+        scale_fc_layer_sizes.insert(
+            0, int(img_height * img_width * conv_layer_fms[-1]))
         for i in range(len(scale_fc_layer_sizes) - 1):
             self.fc_layers.append(nn.Linear(scale_fc_layer_sizes[i],
                                             scale_fc_layer_sizes[i+1]))

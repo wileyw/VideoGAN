@@ -19,3 +19,7 @@ RUN ${WORKENV_NAME}/bin/pip3 install --upgrade pip
 RUN ${WORKENV_NAME}/bin/pip3 install http://download.pytorch.org/whl/cu92/torch-0.4.1-cp35-cp35m-linux_x86_64.whl
 RUN ${WORKENV_NAME}/bin/pip3 install torchvision
 
+# Install other dependencies.
+RUN ${WORKENV_NAME}/bin/pip3 install -y \
+    matplotlib \
+    scikit-image
