@@ -4,8 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torchvision.transforms.functional import resize
-
 # Default settings of discriminator networks.
 IMG_H = 32
 IMG_W = 32
@@ -76,8 +74,8 @@ class DScaleNet(nn.Module):
         # Run fc.
         for layer in self.fc_layers[:-1]:
             x = F.relu(layer(x))
-        x = F.sigmoid(self.fc_layers[-1](x))
-        x = F.clamp(x, 0.1, 0.9)
+        x = torch.sigmoid(self.fc_layers[-1](x))
+        x = torch.clamp(x, 0.1, 0.9)
 
         return x
 
@@ -111,7 +109,8 @@ class DiscriminatorModel(nn.Module):
 
     def forward(self, x):
         out = []
+        x = F.interpolate(x, size=(32, 32))
         for img_dim, scale_net in zip(self.img_dims, self.scale_nets):
-            scale_net_x = resize(x, img_dim)
-            out.append(scale_net.forward(x))
+            scale_net_x = F.interpolate(x, size=img_dim)
+            out.append(scale_net.forward(scale_net_x))
         return torch.stack(out)
