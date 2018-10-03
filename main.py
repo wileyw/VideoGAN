@@ -10,6 +10,7 @@ from skimage import io, transform
 from skimage.transform import resize
 
 import d_net
+import g_net
 
 class PacmanDataset(torch.utils.data.Dataset):
     def __init__(self, videos_dir):
@@ -58,11 +59,12 @@ def main():
             [1024, 512, 1],
             [1024, 512, 1],
             [1024, 512, 1]]
+
     D = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
             conv_layer_fms_list=SCALE_CONV_FSM_D,
             scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
-    # Implement Generator Here
-    G = None
+
+    G = g_net.GeneratorModel()
 
     optimizer = optim.SGD(D.parameters(), lr=0.001, momentum=0.9)
 
@@ -71,10 +73,12 @@ def main():
             before_batch = sample_batch['image0'].float()
             after_batch = sample_batch['image1'].float()
 
-            #generated_image = G(before_batch)
-            generated_image = before_batch
+            generated_image = G(before_batch)
+            print(generated_image)
+            exit()
 
             result = D(generated_image)
+
             print(result)
             print(result.shape)
 
