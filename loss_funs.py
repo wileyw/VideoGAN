@@ -74,29 +74,31 @@ def gdl_loss(gen_frames, gt_frames, alpha):
     @param alpha: The power to which each gradient term is raised.
     @return: The GDL loss.
     """
-    # calculate the loss for each scale
-    scale_losses = []
-    for i in xrange(len(gen_frames)):
-        # create filters [-1, 1] and [[1],[-1]] for diffing to the left and down respectively.
-        pos = tf.constant(np.identity(3), dtype=tf.float32)
-        neg = -1 * pos
-        filter_x = tf.expand_dims(tf.pack([neg, pos]), 0)  # [-1, 1]
-        filter_y = tf.pack([tf.expand_dims(pos, 0), tf.expand_dims(neg, 0)])  # [[1],[-1]]
-        strides = [1, 1, 1, 1]  # stride of (1, 1)
-        padding = 'SAME'
+    filter_x_values = np.array(
+        [[[[-1, 1]], [[0, 0]], [[0, 0]]],
+        [[[0, 0]], [[-1, 1]], [[0, 0]]],
+        [[[0, 0]], [[0, 0]], [[-1, 1]]]], dtype=np.float32)
+    filter_x = nn.Conv2d(3, 3, (1, 2))
+    filter_x.weight = nn.Parameter(torch.from_numpy(filter_x_values))
 
-        gen_dx = tf.abs(tf.nn.conv2d(gen_frames[i], filter_x, strides, padding=padding))
-        gen_dy = tf.abs(tf.nn.conv2d(gen_frames[i], filter_y, strides, padding=padding))
-        gt_dx = tf.abs(tf.nn.conv2d(gt_frames[i], filter_x, strides, padding=padding))
-        gt_dy = tf.abs(tf.nn.conv2d(gt_frames[i], filter_y, strides, padding=padding))
+    filter_y_values = np.array(
+        [[[[-1], [1]], [[0], [0]], [[0], [0]]],
+        [[[0], [0]], [[-1], [1]], [[0], [0]]],
+        [[[0], [0]], [[0], [0]], [[-1], [1]]]], dtype=np.float32)
+    filter_y = nn.Conv2d(3, 3, (2, 1))
+    filter_y.weight = nn.Parameter(torch.from_numpy(filter_y_values))
 
-        grad_diff_x = tf.abs(gt_dx - gen_dx)
-        grad_diff_y = tf.abs(gt_dy - gen_dy)
+    gen_dx = filter_x(gen_frames)
+    gen_dy = filter_y(gen_frames)
+    gt_dx = filter_x(gt_frames)
+    gt_dy = filter_y(gt_frames)
 
-        scale_losses.append(tf.reduce_sum((grad_diff_x ** alpha + grad_diff_y ** alpha)))
+    grad_diff_x = torch.pow(torch.abs(gt_dx - gen_dx), alpha)
+    grad_diff_y = torch.pow(torch.abs(gt_dy - gen_dy), alpha)
 
-    # condense into one tensor and avg
-    return tf.reduce_mean(tf.pack(scale_losses))
+    grad_total = torch.stack(grad_diff_x, grad_diff_y)
+
+    return torch.mean(grad_total)
 
 
 def adv_loss(preds, labels):
@@ -107,6 +109,7 @@ def adv_loss(preds, labels):
     @return: The adversarial loss.
     """
     # calculate the loss for each scale
+    loss = nn.BCE_loss(size_average=True)
     scale_losses = []
     for i in xrange(len(preds)):
         loss = bce_loss(preds[i], labels)
