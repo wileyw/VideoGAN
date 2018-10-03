@@ -7,6 +7,7 @@ import numpy as np
 import torch.optim as optim
 
 from skimage import io, transform
+from skimage.transform import resize
 
 import d_net
 
@@ -30,10 +31,12 @@ class PacmanDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image_path0 = self.before_image_paths[idx]
         image0 = io.imread(image_path0)
+        image0 = resize(image0, (32, 32), anti_aliasing=True)
         image0 = np.rollaxis(image0, 2, 0) / 255.
 
         image_path1 = self.after_image_paths[idx + 1]
         image1 = io.imread(image_path1)
+        image1 = resize(image1, (32, 32), anti_aliasing=True)
         image1 = np.rollaxis(image1, 2, 0) / 255.
 
         return {'image0': image0, 'image1': image1}
@@ -41,7 +44,7 @@ class PacmanDataset(torch.utils.data.Dataset):
 def main():
     #dataset = PacmanDataset('Ms_Pacman/Train/')
     dataset = PacmanDataset('Ms_Pacman/Test/')
-    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=4, shuffle=False, num_workers=4)
+    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=False, num_workers=1)
 
     SCALE_CONV_FSM_D = [[3, 64],
             [3, 64, 128, 128],
@@ -55,9 +58,9 @@ def main():
             [1024, 512, 1],
             [1024, 512, 1],
             [1024, 512, 1]]
-    D = d_net.DiscriminatorModel(SCALE_KERNEL_SIZES_D,
-            SCALE_CONV_FSM_D,
-            SCALE_FC_LAYER_SIZES_D)
+    D = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
+            conv_layer_fms_list=SCALE_CONV_FSM_D,
+            scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
     # Implement Generator Here
     G = None
 
@@ -72,7 +75,8 @@ def main():
             generated_image = before_batch
 
             result = D(generated_image)
-            #print(result)
+            print(result)
+            print(result.shape)
 
             print(i_batch, before_batch.shape, after_batch.shape)
             exit()
