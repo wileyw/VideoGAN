@@ -2,11 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import tensorflow as tf
-import numpy as np
-
-from tfutils import log10
-import constants as c
 
 def combined_loss(gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1, l_num=2, alpha=2):
     """
@@ -32,20 +27,6 @@ def combined_loss(gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1
     if c.ADVERSARIAL: loss += lam_adv * adv_loss(d_preds, torch.ones([batch_size, 1]))
 
     return loss
-
-
-def bce_loss(preds, targets):
-    """
-    Calculates the sum of binary cross-entropy losses between predictions and ground truths.
-    @param preds: A 1xN tensor. The predicted classifications of each frame.
-    @param targets: A 1xN tensor The target labels for each frame. (Either 1 or -1). Not "truths"
-                    because the generator passes in lies to determine how well it confuses the
-                    discriminator.
-    @return: The sum of binary cross-entropy losses.
-    """
-    return nn.BCELoss(preds, targets)
-    # return tf.squeeze(-1 * (tf.matmul(targets, log10(preds), transpose_a=True) +
-    #                         tf.matmul(1 - targets, log10(1 - preds), transpose_a=True)))
 
 
 def lp_loss(gen_frames, gt_frames, l_num):
@@ -110,11 +91,4 @@ def adv_loss(preds, labels):
     """
     # calculate the loss for each scale
     loss = nn.BCE_loss(size_average=True)
-    scale_losses = []
-    for i in xrange(len(preds)):
-        loss = bce_loss(preds[i], labels)
-        scale_losses.append(loss)
-
-    # condense into one tensor and avg
-    return torch.mean(scale_losses)
-# return tf.reduce_mean(tf.pack(scale_losses))
+    return loss(preds, labels)
