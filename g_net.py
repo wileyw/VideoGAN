@@ -11,7 +11,7 @@ IMG_W = 32
 HIST_LEN = 1
 
 # feature maps for each convolution of each scale network in the discriminator model
-SCALE_CONV_G = [
+SCALE_FMS_G = [
     [3 * (HIST_LEN), 128, 256, 128, 3],
     [3 * (HIST_LEN), 128, 256, 128, 3],
     [3 * (HIST_LEN), 128, 256, 512, 256, 128, 3],
@@ -49,11 +49,8 @@ class GScaleNet(nn.Module):
 
     def forward(self, x):
         # Run convolutions.
-        print(x.size())
         for layer in self.conv_layers:
-            print(layer)
             x = F.relu(layer(x))
-            print(x.size())
 
         return x
 
@@ -62,7 +59,7 @@ class GeneratorModel(nn.Module):
     def __init__(self,
                  img_height=IMG_H, img_width=IMG_W,
                  kernel_sizes_list=SCALE_KERNEL_SIZES_G,
-                 conv_layer_fms_list=SCALE_CONV_G):
+                 conv_layer_fms_list=SCALE_FMS_G):
         super(GeneratorModel, self).__init__()
 
         self.scale_nets = nn.ModuleList()
@@ -89,5 +86,7 @@ class GeneratorModel(nn.Module):
         for img_dim, scale_net in zip(self.img_dims, self.scale_nets):
             scale_net_x = F.interpolate(x, size=img_dim)
             out.append(scale_net.forward(scale_net_x))
+
+            break
 
         return torch.stack(out)
