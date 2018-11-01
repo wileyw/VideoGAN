@@ -1,14 +1,17 @@
 """
 Adapted from https://github.com/dyelax/Adversarial_Video_Generation/blob/master/Code/utils.py
 """
+import os
+from glob import glob
 
-import numpy as numpy
+import numpy as np
 from scipy.ndimage import imread
 
 
 FULL_HEIGHT = 210
 FULL_WIDTH = 160
 TRAIN_HEIGHT = TRAIN_WIDTH = 32
+
 
 def normalize_frames(frames):
     new_frames = frames.astype(np.float32)
@@ -17,12 +20,14 @@ def normalize_frames(frames):
 
     return new_frames
 
+
 def denormalize_frames(frames):
     new_frames = frames + 1
     new_frames *= (255 / 2)
     new_frames = new_frames.astype(np.uint8)
 
     return new_frames
+
 
 def get_full_clips(data_dir, hist_len, num_clips, num_rec_out=1):
     """
@@ -50,6 +55,7 @@ def get_full_clips(data_dir, hist_len, num_clips, num_rec_out=1):
             clips[clip_num, :, :, frame_num * 3:(frame_num + 1) * 3] = norm_frame
 
     return clips
+
 
 def get_train_batch(train_dir, num_clips, batch_size, frame_w, frame_h, hist_len):
     """

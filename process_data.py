@@ -3,7 +3,8 @@ Adapted from https://github.com/dyelax/Adversarial_Video_Generation/blob/master/
 """
 
 import argparse
-import glob
+import os
+from glob import glob
 
 import numpy as np
 
@@ -21,8 +22,9 @@ def clip_l2_diff(clip, hist_len):
 
     return diff
 
+
 def process_clip(train_dir, frame_h, frame_w,
-				 hist_len, movement_threshold=100):
+                 hist_len, movement_threshold=100):
     clip = data_util.get_full_clips(train_dir, hist_len, 1)[0]
 
     # Randomly crop the clip. With 0.05 probability, take the first crop offered, otherwise,
@@ -39,51 +41,58 @@ def process_clip(train_dir, frame_h, frame_w,
 
     return cropped_clip
 
+
 def process_training_data(train_dir, num_clips,
-						  frame_h, frame_w, hist_len,
-						  movement_threshold, clip_dir):
-	num_prev_clips = len(glob(clip_dir + '*'))
+                          frame_h, frame_w, hist_len,
+                          movement_threshold, clip_dir):
+    num_prev_clips = len(glob(clip_dir + '*'))
 
-	for clip_num in range(num_prev_clips, num_clips + num_prev_clips):
-		clip = process_clip(train_dir, frame_h, frame_w,
-							hist_len, movement_threshold)
-		np.savez_compresed(os.path.join(clip_dir, str(clip_num)), clip)
+    for clip_num in range(num_prev_clips, num_clips + num_prev_clips):
+        clip = process_clip(train_dir, frame_h, frame_w,
+                            hist_len, movement_threshold)
+        np.savez_compressed(os.path.join(clip_dir, str(clip_num)), clip)
 
-		n = clip_num + 1
-		if (n) % 100 == 0:
-			print('Process {} clips'.format(n))
+        n = clip_num + 1
+        if (n) % 100 == 0:
+            print('Process {} clips'.format(n))
+
 
 def main():
-	parser = argparse.ArgumentParser(
-		description='Script to process video directory.')
-	parser.add_argument('-n', '--num_clips',
-						default=5000000,
-						help='Number of clips to output for training.')
-	parser.add_argument('-th', '--height',
-						default=32,
-						help='Frame height of training clips.')
-	parser.add_argument('-tw', '--width',
-						default=32,
-						help='Frame width of training clips.')
-	parser.add_argument('-cl', '--hist_len',
-						default=4,
-						help='Length of training episode clips.')
-	parser.add_argument('-t', '--move_th',
-						default=100,
-						help='Movement threshold for l2 diff in considering training clip.')
-	parser.add_argument('train_dir',
-						help='Directory containing full training frames.')
-	parser.add_argument('clip_dir',
-						help=('Output directory for processed training clips.'
-							  "(Make this hidden "
-							  "so the filesystem doesn't freeze with"
-							  "so many files. DON'T `ls` THIS DIRECTORY!)")
-						)
-	args = parser.parse_args()
-	
-	process_training_data(args.train_dir, args.num_clips,
-						  args.height, args.width, args.hist_len,
-						  args.move_th, args.clip_dir)
+    parser = argparse.ArgumentParser(
+        description='Script to process video directory.')
+    parser.add_argument('-n', '--num_clips',
+                        default=5000000,
+                        type=int,
+                        help='Number of clips to output for training.')
+    parser.add_argument('-th', '--height',
+                        default=32,
+                        type=int,
+                        help='Frame height of training clips.')
+    parser.add_argument('-tw', '--width',
+                        default=32,
+                        type=int,
+                        help='Frame width of training clips.')
+    parser.add_argument('-cl', '--hist_len',
+                        default=4,
+                        type=int,
+                        help='Length of training episode clips.')
+    parser.add_argument('-t', '--move_th',
+                        default=100,
+                        type=int,
+                        help='Movement threshold for l2 diff in considering training clip.')
+    parser.add_argument('train_dir',
+                        help='Directory containing full training frames.')
+    parser.add_argument('clip_dir',
+                        help=('Output directory for processed training clips.'
+                              "(Make this hidden "
+                              "so the filesystem doesn't freeze with"
+                              "so many files. DON'T `ls` THIS DIRECTORY!)")
+                        )
+    args = parser.parse_args()
+
+    process_training_data(args.train_dir, args.num_clips,
+                          args.height, args.width, args.hist_len,
+                          args.move_th, args.clip_dir)
 
 if __name__ == '__main__':
-	main()
+    main()
