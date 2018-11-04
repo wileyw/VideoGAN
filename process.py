@@ -64,7 +64,7 @@ def main():
             conv_layer_fms_list=SCALE_CONV_FSM_D,
             scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
 
-    G = g_net.GeneratorModel()
+    G = g_net.GeneratorDefinitions()
 
     optimizer = optim.SGD(D.parameters(), lr=0.001, momentum=0.9)
 
@@ -73,8 +73,11 @@ def main():
             before_batch = sample_batch['image0'].float()
             after_batch = sample_batch['image1'].float()
 
+            print(before_batch.shape)
+            print(after_batch.shape)
             generated_image = G(before_batch)
-            print(generated_image)
+            print('Size of generated G image')
+            print(generated_image.shape)
             exit()
 
             result = D(generated_image)
