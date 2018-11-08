@@ -8,7 +8,7 @@ import torch.nn.functional as F
 IMG_H = 32
 IMG_W = 32
 
-HIST_LEN = 1
+HIST_LEN = 4
 
 # feature maps for each convolution of each scale network in the discriminator model
 SCALE_FMS_G = [
@@ -33,9 +33,6 @@ class Generator(nn.Module):
         self.layers = layers
 
     def forward(self, x):
-        img_dim = 32, 32
-
-        x = F.interpolate(x, size=img_dim)
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x))
             print('i: {}, size: {}'.format(i, x.shape))
@@ -48,21 +45,21 @@ class GeneratorDefinitions(nn.Module):
 
         # Generator Net 1
         self.layers1 = nn.ModuleList()
-        self.layers1.append(nn.Conv2d(3, 128, 3, stride=1, padding=1))
+        self.layers1.append(nn.Conv2d(3 * HIST_LEN, 128, 3, stride=1, padding=1))
         self.layers1.append(nn.Conv2d(128, 256, 3, stride=1, padding=1))
         self.layers1.append(nn.ConvTranspose2d(256, 128, 3, stride=1, padding=1, output_padding=0))
         self.layers1.append(nn.ConvTranspose2d(128, 3, 3, stride=1, padding=1, output_padding=0))
 
         # Generator Net 2
         self.layers2 = nn.ModuleList()
-        self.layers2.append(nn.Conv2d(3, 128, 5, stride=1, padding=2))
+        self.layers2.append(nn.Conv2d(3 * HIST_LEN, 128, 5, stride=1, padding=2))
         self.layers2.append(nn.Conv2d(128, 256, 3, stride=1, padding=1))
         self.layers2.append(nn.ConvTranspose2d(256, 128, 3, stride=1, padding=1, output_padding=0))
         self.layers2.append(nn.ConvTranspose2d(128, 3, 5, stride=1, padding=2, output_padding=0))
 
         # Generator Net 3
         self.layers3 = nn.ModuleList()
-        self.layers3.append(nn.Conv2d(3, 128, 5, stride=1, padding=2))
+        self.layers3.append(nn.Conv2d(3 * HIST_LEN, 128, 5, stride=1, padding=2))
         self.layers3.append(nn.Conv2d(128, 256, 3, stride=1, padding=1))
         self.layers3.append(nn.Conv2d(256, 512, 3, stride=1, padding=1))
         self.layers3.append(nn.ConvTranspose2d(512, 256, 3, stride=1, padding=1, output_padding=0))
@@ -71,7 +68,7 @@ class GeneratorDefinitions(nn.Module):
 
         # Generator Net 4
         self.layers4 = nn.ModuleList()
-        self.layers4.append(nn.Conv2d(3, 128, 7, stride=1, padding=3))
+        self.layers4.append(nn.Conv2d(3 * HIST_LEN, 128, 7, stride=1, padding=3))
         self.layers4.append(nn.Conv2d(128, 256, 5, stride=1, padding=2))
         self.layers4.append(nn.Conv2d(256, 512, 5, stride=1, padding=2))
         self.layers4.append(nn.ConvTranspose2d(512, 256, 5, stride=1, padding=2, output_padding=0))
@@ -84,9 +81,16 @@ class GeneratorDefinitions(nn.Module):
         model3 = Generator(self.layers3)
         model4 = Generator(self.layers4)
 
-        image1 = model1(x)
-        image2 = model2(image1)
-        image3 = model3(image2)
-        image4 = model4(image3)
+        input_image1 = F.interpolate(x, size=(4, 4))
+        image1 = model1(input_image1)
+
+        input_image2 = F.interpolate(x, size=(8, 8))
+        image2 = model2(input_image2)
+
+        input_image3 = F.interpolate(x, size=(16, 16))
+        image3 = model3(input_image3)
+
+        input_image4 = F.interpolate(x, size=(32, 32))
+        image4 = model4(input_image4)
 
         return image4

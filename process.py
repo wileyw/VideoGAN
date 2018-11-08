@@ -19,28 +19,33 @@ class PacmanDataset(torch.utils.data.Dataset):
 
         self.before_image_paths = []
         self.after_image_paths = []
+        HIST_LEN = 4
         for image_dir in image_dirs:
             image_paths = sorted(glob.glob(os.path.join(image_dir, '*.png')))
 
-            for i in range(len(image_paths) - 1):
-                self.before_image_paths.append(image_paths[i])
-                self.after_image_paths.append(image_paths[i + 1])
+            for i in range(len(image_paths) - HIST_LEN):
+                self.before_image_paths.append(image_paths[i:i + HIST_LEN])
+                self.after_image_paths.append(image_paths[i + HIST_LEN])
 
     def __len__(self):
         return len(self.before_image_paths)
 
     def __getitem__(self, idx):
-        image_path0 = self.before_image_paths[idx]
-        image0 = io.imread(image_path0)
-        image0 = resize(image0, (32, 32), anti_aliasing=True)
-        image0 = np.rollaxis(image0, 2, 0) / 255.
+        history_images = []
+        for image_path0 in self.before_image_paths[idx]:
+            image0 = io.imread(image_path0)
+            image0 = resize(image0, (32, 32), anti_aliasing=True)
+            image0 = np.rollaxis(image0, 2, 0) / 255.
+            history_images.append(torch.tensor(image0))
+
+        stacked_history = torch.cat(history_images, 0)
 
         image_path1 = self.after_image_paths[idx + 1]
         image1 = io.imread(image_path1)
         image1 = resize(image1, (32, 32), anti_aliasing=True)
         image1 = np.rollaxis(image1, 2, 0) / 255.
 
-        return {'image0': image0, 'image1': image1}
+        return {'image0': stacked_history, 'image1': image1}
 
 def main():
     #dataset = PacmanDataset('Ms_Pacman/Train/')
@@ -73,8 +78,6 @@ def main():
             before_batch = sample_batch['image0'].float()
             after_batch = sample_batch['image1'].float()
 
-            print(before_batch.shape)
-            print(after_batch.shape)
             generated_image = G(before_batch)
             print('Size of generated G image')
             print(generated_image.shape)
