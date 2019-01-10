@@ -112,14 +112,11 @@ def main():
     # Display dummy data
     #display_dummy_data(dog_data)
 
-    g_optimizer = optim.SGD(G.parameters(), lr=0.001, momentum=0.9)
-
     print('Dummy Parameters', list(Dummy.parameters()))
-    dummy_optimizer = optim.Adam(Dummy.parameters(), lr=0.01)
+    dummy_optimizer = optim.Adam(Dummy.parameters(), lr=0.1)
+    g_optimizer = optim.Adam(G.parameters(), lr=0.001)
 
-    g_optimizer.zero_grad()
-
-    param_values = []
+    dummy_values = []
     for epoch in range(1000):
         for i_batch, sample_batch in enumerate(dataset_loader):
             before_batch = sample_batch['image0'].float()
@@ -127,28 +124,40 @@ def main():
 
             # Clear gradients before calling loss.backward() and optimizer.step()
             dummy_optimizer.zero_grad()
+            g_optimizer.zero_grad()
 
-            #simple_loss = (generated_image - dog_data).pow(2)
-            #simple_loss = simple_loss.sum(1).sum(1).sum(1)
+            # Define the Dummy loss
+            dummy_loss = Dummy(-5).pow(2)
+            dummy_param = list(Dummy.parameters())[0].tolist()[0]
+            print('Dummy Loss:', dummy_loss)
+            print('Dummy Solution:', dummy_param)
 
-            simple_loss = Dummy(-5).pow(2)
-            print('Simple Loss:', simple_loss)
-            param = list(Dummy.parameters())[0].tolist()[0]
-            print('Solution:', param)
+            # Define the Generator Loss function
+            # TODO: Init the Generator weights to something reasonable
+            generated_image = G(before_batch)
+            g_loss = (generated_image - dog_data).pow(2)
+            g_loss = g_loss.sum(1).sum(1).sum(1)
+            print(g_loss.shape)
+            print(g_loss.detach().numpy())
+            print('Generator Loss:', g_loss)
 
-            param_values.append(param)
-
-            simple_loss.backward()
+            # Dummy back prop and optimizer step
+            dummy_loss.backward()
             dummy_optimizer.step()
 
-            #print('Size of Generator Input:', before_batch.shape)
-            #generated_image = G(before_batch)
-            #save_dummy_data(generated_image, epoch)
+            # Generator back prop and optimizer step
+            g_loss.backward()
+            g_optimizer.step()
+
+            # Save values to plot
+            dummy_values.append(dummy_param)
+
+            save_dummy_data(generated_image, epoch)
 
             break
 
-    print(param_values)
-    matplotlib.pyplot.plot(param_values)
+    print(dummy_values)
+    matplotlib.pyplot.plot(dummy_values)
     plt.show()
 
 
