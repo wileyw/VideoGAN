@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch.optim as optim
 import cv2
+import matplotlib
+import matplotlib.pyplot as plt
 
 from skimage import io, transform
 from skimage.transform import resize
@@ -101,6 +103,8 @@ def main():
             scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
 
     G = g_net.GeneratorDefinitions()
+    import dummy_net
+    Dummy = dummy_net.Dummy()
 
     # Load dummy data
     dog_data = load_dummy_data()
@@ -110,32 +114,42 @@ def main():
 
     g_optimizer = optim.SGD(G.parameters(), lr=0.001, momentum=0.9)
 
+    print('Dummy Parameters', list(Dummy.parameters()))
+    dummy_optimizer = optim.Adam(Dummy.parameters(), lr=0.01)
+
     g_optimizer.zero_grad()
-    for epoch in range(100):
+
+    param_values = []
+    for epoch in range(1000):
         for i_batch, sample_batch in enumerate(dataset_loader):
             before_batch = sample_batch['image0'].float()
             after_batch = sample_batch['image1'].float()
 
+            # Clear gradients before calling loss.backward() and optimizer.step()
+            dummy_optimizer.zero_grad()
 
-            print('Size of Generator Input:', before_batch.shape)
-            generated_image = G(before_batch)
+            #simple_loss = (generated_image - dog_data).pow(2)
+            #simple_loss = simple_loss.sum(1).sum(1).sum(1)
 
-            simple_loss = (generated_image - dog_data).pow(2)
-            print(simple_loss.shape)
-            simple_loss = simple_loss.sum(1).sum(1).sum(1)
+            simple_loss = Dummy(-5).pow(2)
             print('Simple Loss:', simple_loss)
+            param = list(Dummy.parameters())[0].tolist()[0]
+            print('Solution:', param)
+
+            param_values.append(param)
 
             simple_loss.backward()
-            g_optimizer.step()
+            dummy_optimizer.step()
 
-            save_dummy_data(generated_image, epoch)
+            #print('Size of Generator Input:', before_batch.shape)
+            #generated_image = G(before_batch)
+            #save_dummy_data(generated_image, epoch)
 
             break
 
-            #print('Size of generated G image:', generated_image.shape)
-            #D_fake_loss = D(generated_image)
-            #print('Discriminator Fake Loss:', D_fake_loss)
-            #print(D_fake_loss)
+    print(param_values)
+    matplotlib.pyplot.plot(param_values)
+    plt.show()
 
 
 if __name__ == '__main__':
