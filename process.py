@@ -5,6 +5,7 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 import torch.optim as optim
+import cv2
 
 from skimage import io, transform
 from skimage.transform import resize
@@ -47,15 +48,35 @@ class PacmanDataset(torch.utils.data.Dataset):
 
         return {'image0': stacked_history, 'image1': image1}
 
-def dummy_data():
-    import cv2
+def load_dummy_data():
     dog_img = cv2.imread('dog.jpg')
     dog_img = cv2.resize(dog_img, (32, 32))
 
     dog_data = np.rollaxis(dog_img, 2, 0) / 255.
     dog_data = np.expand_dims(dog_data, axis=0)
 
+    dog_data = torch.from_numpy(dog_data).float()
+
     return dog_data
+
+def display_dummy_data(dummy_data):
+    dummy_data = dummy_data.numpy()
+
+    img_data = np.squeeze(dummy_data)
+    img_data = np.rollaxis(img_data, 0, 3) * 255.
+    img_data = img_data.astype(np.uint8)
+
+    cv2.imshow('img', img_data)
+    cv2.waitKey(0)
+
+def save_dummy_data(dummy_data, i):
+    dummy_data = dummy_data.detach().numpy()
+
+    img_data = np.squeeze(dummy_data)
+    img_data = np.rollaxis(img_data, 0, 3) * 255.
+    img_data = img_data.astype(np.uint8)
+
+    cv2.imwrite('test{}.jpg'.format(i), img_data)
 
 def main():
     #dataset = PacmanDataset('Ms_Pacman/Train/')
@@ -82,35 +103,40 @@ def main():
     G = g_net.GeneratorDefinitions()
 
     # Load dummy data
-    dog_data = dummy_data()
+    dog_data = load_dummy_data()
 
-    optimizer = optim.SGD(D.parameters(), lr=0.001, momentum=0.9)
+    # Display dummy data
+    #display_dummy_data(dog_data)
 
-    for epoch in range(1):
+    g_optimizer = optim.SGD(G.parameters(), lr=0.001, momentum=0.9)
+
+    g_optimizer.zero_grad()
+    for epoch in range(100):
         for i_batch, sample_batch in enumerate(dataset_loader):
             before_batch = sample_batch['image0'].float()
             after_batch = sample_batch['image1'].float()
 
-            # Testing the discriminator
-            #print(dog_img.shape)
-            #d_result = D(dog_img)
-            #print(d_result)
 
             print('Size of Generator Input:', before_batch.shape)
             generated_image = G(before_batch)
-            print('Size of generated G image:', generated_image.shape)
-            D_fake_loss = D(generated_image)
-            print('Discriminator Fake Loss:', D_fake_loss)
-            print(D_fake_loss)
-            exit()
 
-            result = D(generated_image)
+            simple_loss = (generated_image - dog_data).pow(2)
+            print(simple_loss.shape)
+            simple_loss = simple_loss.sum(1).sum(1).sum(1)
+            print('Simple Loss:', simple_loss)
 
-            print(result)
-            print(result.shape)
+            simple_loss.backward()
+            g_optimizer.step()
 
-            print(i_batch, before_batch.shape, after_batch.shape)
-            exit()
+            save_dummy_data(generated_image, epoch)
+
+            break
+
+            #print('Size of generated G image:', generated_image.shape)
+            #D_fake_loss = D(generated_image)
+            #print('Discriminator Fake Loss:', D_fake_loss)
+            #print(D_fake_loss)
+
 
 if __name__ == '__main__':
     main()
