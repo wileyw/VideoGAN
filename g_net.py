@@ -8,7 +8,7 @@ import torch.nn.functional as F
 IMG_H = 32
 IMG_W = 32
 
-HIST_LEN = 4
+HIST_LEN = 1
 
 # feature maps for each convolution of each scale network in the discriminator model
 SCALE_FMS_G = [
@@ -35,7 +35,7 @@ class Generator(nn.Module):
     def forward(self, x):
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x))
-            print('i: {}, size: {}'.format(i, x.shape))
+            #print('i: {}, size: {}'.format(i, x.shape))
 
         return x
 
