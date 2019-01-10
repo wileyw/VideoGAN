@@ -19,7 +19,7 @@ class PacmanDataset(torch.utils.data.Dataset):
 
         self.before_image_paths = []
         self.after_image_paths = []
-        HIST_LEN = 4
+        HIST_LEN = 1
         for image_dir in image_dirs:
             image_paths = sorted(glob.glob(os.path.join(image_dir, '*.png')))
 
@@ -47,10 +47,20 @@ class PacmanDataset(torch.utils.data.Dataset):
 
         return {'image0': stacked_history, 'image1': image1}
 
+def dummy_data():
+    import cv2
+    dog_img = cv2.imread('dog.jpg')
+    dog_img = cv2.resize(dog_img, (32, 32))
+
+    dog_data = np.rollaxis(dog_img, 2, 0) / 255.
+    dog_data = np.expand_dims(dog_data, axis=0)
+
+    return dog_data
+
 def main():
     #dataset = PacmanDataset('Ms_Pacman/Train/')
     dataset = PacmanDataset('Ms_Pacman/Test/')
-    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=False, num_workers=1)
+    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1)
 
     SCALE_CONV_FSM_D = [[3, 64],
             [3, 64, 128, 128],
@@ -71,6 +81,9 @@ def main():
 
     G = g_net.GeneratorDefinitions()
 
+    # Load dummy data
+    dog_data = dummy_data()
+
     optimizer = optim.SGD(D.parameters(), lr=0.001, momentum=0.9)
 
     for epoch in range(1):
@@ -78,9 +91,17 @@ def main():
             before_batch = sample_batch['image0'].float()
             after_batch = sample_batch['image1'].float()
 
+            # Testing the discriminator
+            #print(dog_img.shape)
+            #d_result = D(dog_img)
+            #print(d_result)
+
+            print('Size of Generator Input:', before_batch.shape)
             generated_image = G(before_batch)
-            print('Size of generated G image')
-            print(generated_image.shape)
+            print('Size of generated G image:', generated_image.shape)
+            D_fake_loss = D(generated_image)
+            print('Discriminator Fake Loss:', D_fake_loss)
+            print(D_fake_loss)
             exit()
 
             result = D(generated_image)
