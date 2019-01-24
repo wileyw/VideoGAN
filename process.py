@@ -126,7 +126,6 @@ def main():
             # Clear gradients before calling loss.backward() and optimizer.step()
             dummy_optimizer.zero_grad()
             g_optimizer.zero_grad()
-            d_optimizer.zero_grad()
 
             # Define the Dummy loss
             dummy_loss = Dummy(-5).pow(2)
@@ -136,24 +135,29 @@ def main():
 
             # Define the Generator Loss function
             # TODO: Init the Generator weights to something reasonable
-            generated_image = G(before_batch)
-            g_loss = (generated_image - dog_data).pow(2)
-            g_loss = g_loss.sum(1).sum(1).sum(1)
-            print(g_loss.shape)
-            print(g_loss.detach().numpy())
-            print('Generator Loss:', g_loss)
+            if False:
+                generated_image = G(before_batch)
+                g_loss = (generated_image - dog_data).pow(2)
+                g_loss = g_loss.sum(1).sum(1).sum(1)
+                print(g_loss.shape)
+                print(g_loss.detach().numpy())
+                print('Generator Loss:', g_loss)
 
             # Define a Vanilla GAN
-            """
-            d_on_real = (D(dog_data) - 1).pow(2) + D(G(before_batch)).pow(2)
-            d_loss = d_on_real
+            for i in range(1):
+                d_on_real = (D(dog_data) - 1).pow(2) + D(G(before_batch)).pow(2)
+                d_loss = d_on_real
+
+                d_optimizer.zero_grad()
+                d_loss.backward()
+                d_optimizer.step()
 
             generated_image = G(before_batch)
             g_on_real = (D(generated_image) - 1).pow(2)
-            g_loss = g_on_real
-            print('d_on_real:', d_loss)
-            print('g_on_real:', g_loss)
-            """
+            g_loss_simple = (generated_image - dog_data).pow(2).sum(1).sum(1).sum(1)
+            g_loss = g_on_real + g_loss_simple
+            print('d_loss:', d_loss)
+            print('g_loss:', g_loss)
 
             # Dummy back prop and optimizer step
             dummy_loss.backward()
@@ -165,8 +169,6 @@ def main():
 
             # Discriminator loss
             """
-            d_loss.backward()
-            d_optimizer.step()
             """
 
             # Save values to plot
