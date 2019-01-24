@@ -115,6 +115,7 @@ def main():
     print('Dummy Parameters', list(Dummy.parameters()))
     dummy_optimizer = optim.Adam(Dummy.parameters(), lr=0.1)
     g_optimizer = optim.Adam(G.parameters(), lr=0.001)
+    d_optimizer = optim.Adam(D.parameters(), lr=0.001)
 
     dummy_values = []
     for epoch in range(1000):
@@ -134,12 +135,29 @@ def main():
 
             # Define the Generator Loss function
             # TODO: Init the Generator weights to something reasonable
+            if False:
+                generated_image = G(before_batch)
+                g_loss = (generated_image - dog_data).pow(2)
+                g_loss = g_loss.sum(1).sum(1).sum(1)
+                print(g_loss.shape)
+                print(g_loss.detach().numpy())
+                print('Generator Loss:', g_loss)
+
+            # Define a Vanilla GAN
+            for i in range(1):
+                d_on_real = (D(dog_data) - 1).pow(2) + D(G(before_batch)).pow(2)
+                d_loss = d_on_real
+
+                d_optimizer.zero_grad()
+                d_loss.backward()
+                d_optimizer.step()
+
             generated_image = G(before_batch)
-            g_loss = (generated_image - dog_data).pow(2)
-            g_loss = g_loss.sum(1).sum(1).sum(1)
-            print(g_loss.shape)
-            print(g_loss.detach().numpy())
-            print('Generator Loss:', g_loss)
+            g_on_real = (D(generated_image) - 1).pow(2)
+            g_loss_simple = (generated_image - dog_data).pow(2).sum(1).sum(1).sum(1)
+            g_loss = g_on_real + g_loss_simple
+            print('d_loss:', d_loss)
+            print('g_loss:', g_loss)
 
             # Dummy back prop and optimizer step
             dummy_loss.backward()
@@ -148,6 +166,10 @@ def main():
             # Generator back prop and optimizer step
             g_loss.backward()
             g_optimizer.step()
+
+            # Discriminator loss
+            """
+            """
 
             # Save values to plot
             dummy_values.append(dummy_param)

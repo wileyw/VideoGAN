@@ -113,4 +113,4 @@ class DiscriminatorModel(nn.Module):
         for img_dim, scale_net in zip(self.img_dims, self.scale_nets):
             scale_net_x = F.interpolate(x, size=img_dim)
             out.append(scale_net.forward(scale_net_x))
-        return torch.stack(out)
+        return torch.sum(torch.stack(out))
