@@ -25,23 +25,25 @@ class TestBCELoss(unittest.TestCase):
         res_tru = -1 * np.sum(log_con * np.ones([5, 1]))
         np.testing.assert_array_almost_equal(res, res_tru)
 
-    # def test_false_incorrect(self):
-    #     targets = tf.constant(np.zeros([5, 1]))
-    #     preds = tf.constant(np.ones([5, 1])) - 1e-7
-    #     res = sess.run(bce_loss(preds, targets))
+    def test_false_incorrect(self):
+        targets = FloatTensor(np.zeros([5, 1]))
+        preds = FloatTensor(np.ones([5, 1]) - 1e-7)
+        loss = nn.BCELoss(reduction='sum')
+        res = loss(preds, targets).numpy()
 
-    #     log_con = np.log10(1e-7)
-    #     res_tru = -1 * np.sum(np.array([log_con] * 5))
-    #     assert np.array_equal(np.around(res, 7), np.around(res_tru, 7))
+        log_con = np.log(1e-7)
+        res_tru = -1 * np.sum(np.array(log_con * np.ones([5, 1])))
+        np.testing.assert_array_almost_equal(res, res_tru, decimal=0)
 
-    # def test_false_half(self):
-    #     targets = tf.constant(np.zeros([5, 1]))
-    #     preds = 0.5 * tf.constant(np.ones([5, 1]))
-    #     res = sess.run(bce_loss(preds, targets))
+    def test_false_half(self):
+        targets = FloatTensor(np.zeros([5, 1]))
+        preds = 0.5 * FloatTensor(np.ones([5, 1]))
+        loss = nn.BCELoss(reduction='sum')
+        res = loss(preds, targets).numpy()
 
-    #     log_con = np.log10(0.5)
-    #     res_tru = -1 * np.sum(np.array([log_con] * 5))
-    #     assert np.array_equal(np.around(res, 7), np.around(res_tru, 7))
+        log_con = np.log(0.5)
+        res_tru = -1 * np.sum(np.array([log_con] * 5))
+        np.testing.assert_array_almost_equal(res, res_tru, decimal=7)
 
     # def test_true_correct(self):
     #     targets = tf.constant(np.ones([5, 1]))
