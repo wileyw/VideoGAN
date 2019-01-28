@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 from skimage import io, transform
 from skimage.transform import resize
+from torch.autograd import Variable
 
 import d_net
 import g_net
@@ -78,7 +79,60 @@ def save_dummy_data(dummy_data, i):
     img_data = np.rollaxis(img_data, 0, 3) * 255.
     img_data = img_data.astype(np.uint8)
 
-    cv2.imwrite('test{}.jpg'.format(i), img_data)
+    if not os.path.exists('output'):
+        os.makedirs('output')
+
+    #img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
+    cv2.imwrite('output/test{:05d}.jpg'.format(i), img_data)
+
+def save_samples(generated_images, iteration, prefix):
+    import scipy
+    generated_images = generated_images.data.numpy()
+
+    num_images, channels, cell_h, cell_w = generated_images.shape
+    ncols = int(np.sqrt(num_images))
+    nrows = int(np.math.floor(num_images / float(ncols)))
+    result = np.zeros((cell_h * nrows, cell_w * ncols, channels), dtype=generated_images.dtype)
+    for i in range(0, nrows):
+        for j in range(0, ncols):
+            result[i*cell_h:(i+1)*cell_h, j*cell_w:(j+1)*cell_w, :] = generated_images[i*ncols+j].transpose(1, 2, 0)
+    grid = result
+
+    if not os.path.exists('output'):
+        os.makedirs('output')
+    scipy.misc.imsave('output/{}_{:05d}.jpg'.format(prefix, iteration), grid)
+
+
+def sample_noise(batch_size, dim):
+    result = torch.rand(batch_size, dim) * 2 - 1
+    result = Variable(result).unsqueeze(2).unsqueeze(3)
+
+    return result
+
+def get_emoji_loader(emoji_type):
+    from torchvision import datasets
+    from torchvision import transforms
+    from torch.utils.data import DataLoader
+
+    num_workers = 1
+    batch_size = 16
+    image_size = 32
+
+    transform = transforms.Compose([
+        transforms.Scale(image_size),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+    train_path = os.path.join('./emojis', emoji_type)
+    test_path = os.path.join('./emojis', 'Test_{}'.format(emoji_type))
+
+    train_dataset = datasets.ImageFolder(train_path, transform)
+    test_dataset = datasets.ImageFolder(test_path, transform)
+
+    train_dloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    test_dloader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
+    return train_dloader, test_dloader
 
 def main():
     #dataset = PacmanDataset('Ms_Pacman/Train/')
@@ -117,69 +171,75 @@ def main():
     g_optimizer = optim.Adam(G.parameters(), lr=0.001)
     d_optimizer = optim.Adam(D.parameters(), lr=0.001)
 
-    dummy_values = []
-    for epoch in range(1000):
-        for i_batch, sample_batch in enumerate(dataset_loader):
-            before_batch = sample_batch['image0'].float()
-            after_batch = sample_batch['image1'].float()
+    vanilla_d_losses = []
+    vanilla_g_losses = []
 
-            # Clear gradients before calling loss.backward() and optimizer.step()
-            dummy_optimizer.zero_grad()
-            g_optimizer.zero_grad()
+    import vanilla_gan.vanilla_gan
+    vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
+    vanilla_g_net = vanilla_gan.vanilla_gan.Generator()
+    vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0003)
+    vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0003)
 
-            # Define the Dummy loss
-            dummy_loss = Dummy(-5).pow(2)
-            dummy_param = list(Dummy.parameters())[0].tolist()[0]
-            print('Dummy Loss:', dummy_loss)
-            print('Dummy Solution:', dummy_param)
+    # Load emojis
+    train_dataloader, _ = get_emoji_loader('Windows')
 
-            # Define the Generator Loss function
-            # TODO: Init the Generator weights to something reasonable
-            if False:
-                generated_image = G(before_batch)
-                g_loss = (generated_image - dog_data).pow(2)
-                g_loss = g_loss.sum(1).sum(1).sum(1)
-                print(g_loss.shape)
-                print(g_loss.detach().numpy())
-                print('Generator Loss:', g_loss)
+    save_dummy_data(dog_data, 0)
+    count = 0
+    for i in range(1, 5000):
+        for batch in train_dataloader:
+            # Before implementing VideoGAN, I implemented a Vanilla GAN from
+            # http://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/assignments/a4-handout.pdf
+            # Next step is to implement VideoGAN
+            real_images, labels = batch
+            real_images = Variable(real_images)
 
-            # Define a Vanilla GAN
-            for i in range(1):
-                d_on_real = (D(dog_data) - 1).pow(2) + D(G(before_batch)).pow(2)
-                d_loss = d_on_real
+            vanilla_d_optimizer.zero_grad()
+            vanilla_g_optimizer.zero_grad()
 
-                d_optimizer.zero_grad()
-                d_loss.backward()
-                d_optimizer.step()
+            # batch_size x noise_size x 1 x 1
+            batch_size = 16
+            noise_size = 100
+            sampled_noise = sample_noise(batch_size, noise_size)
 
-            generated_image = G(before_batch)
-            g_on_real = (D(generated_image) - 1).pow(2)
-            g_loss_simple = (generated_image - dog_data).pow(2).sum(1).sum(1).sum(1)
-            g_loss = g_on_real + g_loss_simple
-            print('d_loss:', d_loss)
-            print('g_loss:', g_loss)
+            # Step 1. Make one discriminator step
+            generated_images = vanilla_g_net(sampled_noise)
+            d_loss_real = (vanilla_d_net(real_images) - 1).pow(2).mean()
+            d_loss_fake = (vanilla_d_net(generated_images)).pow(2).mean()
+            d_loss = .5 * (d_loss_fake + d_loss_real)
+            d_loss.backward()
+            vanilla_d_optimizer.step()
 
-            # Dummy back prop and optimizer step
-            dummy_loss.backward()
-            dummy_optimizer.step()
+            # batch_size x noise_size x 1 x 1
+            batch_size = 16
+            noise_size = 100
+            sampled_noise = sample_noise(batch_size, noise_size)
 
-            # Generator back prop and optimizer step
+            # Step 2. Make one generator step
+            generated_images = vanilla_g_net(sampled_noise)
+            g_loss_fake = (vanilla_d_net(generated_images) - 1).pow(2).mean()
+            g_loss = g_loss_fake
             g_loss.backward()
-            g_optimizer.step()
+            vanilla_g_optimizer.step()
 
-            # Discriminator loss
-            """
-            """
+            if count % 100 == 0:
+                print('d_loss_real:', d_loss_real)
+                print('d_loss_fake:', d_loss_fake)
+                print(generated_images.shape)
+                print(dog_data.shape)
+                print('g_loss:', g_loss)
 
-            # Save values to plot
-            dummy_values.append(dummy_param)
+                print(generated_images.shape)
+                save_samples(real_images, count, "real")
+                save_samples(generated_images, count, "fake")
+            count += 1
 
-            save_dummy_data(generated_image, epoch)
+            # Record loss values
+            vanilla_d_losses.append(d_loss)
+            vanilla_g_losses.append(g_loss)
 
-            break
-
-    print(dummy_values)
-    matplotlib.pyplot.plot(dummy_values)
+    matplotlib.pyplot.plot(vanilla_d_losses)
+    matplotlib.pyplot.plot(vanilla_g_losses)
+    plt.savefig('plot.jpg')
     plt.show()
 
 
