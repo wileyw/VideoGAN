@@ -45,32 +45,35 @@ class TestBCELoss(unittest.TestCase):
         res_tru = -1 * np.sum(np.array([log_con] * 5))
         np.testing.assert_array_almost_equal(res, res_tru, decimal=7)
 
-    # def test_true_correct(self):
-    #     targets = tf.constant(np.ones([5, 1]))
-    #     preds = tf.constant(np.ones([5, 1])) - 1e-7
-    #     res = sess.run(bce_loss(preds, targets))
+    def test_true_correct(self):
+        targets = FloatTensor(np.ones([5, 1]))
+        preds = FloatTensor(np.ones([5, 1]) - 1e-7)
+        loss = nn.BCELoss(reduction='sum')
+        res = loss(preds, targets).numpy()
 
-    #     log = np.log10(1 - 1e-7)
-    #     res_tru = -1 * np.sum(np.array([log] * 5))
-    #     assert np.array_equal(np.around(res, 7), np.around(res_tru, 7))
+        log = np.log(1 - 1e-7)
+        res_tru = -1 * np.sum(np.array([log] * 5))
+        np.testing.assert_array_almost_equal(res, res_tru, decimal=6)
 
-    # def test_true_incorrect(self):
-    #     targets = tf.constant(np.ones([5, 1]))
-    #     preds = 1e-7 * tf.constant(np.ones([5, 1]))
-    #     res = sess.run(bce_loss(preds, targets))
+    def test_true_incorrect(self):
+        targets = FloatTensor(np.ones([5, 1]))
+        preds = 1e-7 * FloatTensor(np.ones([5, 1]))
+        loss = nn.BCELoss(reduction='sum')
+        res = loss(preds, targets).numpy()
 
-    #     log = np.log10(1e-7)
-    #     res_tru = -1 * np.sum(np.array([log] * 5))
-    #     assert np.array_equal(np.around(res, 7), np.around(res_tru, 7))
+        log = np.log(1e-7)
+        res_tru = -1 * np.sum(np.array([log] * 5))
+        np.testing.assert_approx_equal(res, res_tru, significant=7)
 
-    # def test_true_half(self):
-    #     targets = tf.constant(np.ones([5, 1]))
-    #     preds = 0.5 * tf.constant(np.ones([5, 1]))
-    #     res = sess.run(bce_loss(preds, targets))
+    def test_true_half(self):
+        targets = FloatTensor(np.ones([5, 1]))
+        preds = 0.5 * FloatTensor(np.ones([5, 1]))
+        loss = nn.BCELoss(reduction='sum')
+        res = loss(preds, targets).numpy()
 
-    #     log = np.log10(0.5)
-    #     res_tru = -1 * np.sum(np.array([log] * 5))
-    #     assert np.array_equal(np.around(res, 7), np.around(res_tru, 7))
+        log_ = np.log(0.5)
+        res_tru = -1 * np.sum(np.array([log_] * 5))
+        np.testing.assert_array_almost_equal(res, res_tru, decimal=7)
 
 if __name__ == '__main__':
     unittest.main()
