@@ -1,6 +1,9 @@
 # VideoGAN
 Implement video generative model
 
+Original Paper:
+https://arxiv.org/pdf/1511.05440.pdf
+
 Pacman dataset:
 https://drive.google.com/open?id=0Byf787GZQ7KvV25xMWpWbV9LdUU
 
