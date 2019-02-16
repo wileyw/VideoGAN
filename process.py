@@ -2,7 +2,6 @@ import os
 import torch
 import torchvision
 import glob
-import matplotlib.pyplot as plt
 import numpy as np
 import torch.optim as optim
 import cv2
