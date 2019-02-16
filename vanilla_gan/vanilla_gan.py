@@ -70,6 +70,10 @@ class Generator(nn.Module):
 
     def forward(self, x):
         out = self.deconv1(x)
+        # TODO: Investigate putting Batch Norm before versus after the RELU layer
+        # Resources:
+        # https://www.reddit.com/r/MachineLearning/comments/67gonq/d_batch_normalization_before_or_after_relu/
+        # https://www.youtube.com/watch?v=Xogn6veSyxA&feature=youtu.be&t=325
         out = self.bn1(out)
         out = F.relu(out)
 
