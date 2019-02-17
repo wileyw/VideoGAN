@@ -91,52 +91,63 @@ class Generator(nn.Module):
         return out
 
 class GeneratorSkipConnections(nn.Module):
+    def make_resblock(self, map_size):
+        conv1 = nn.ConvTranspose2d(map_size, map_size, 3, stride=1, padding=1)
+        nn.init.xavier_normal(conv1.weight)
+        bn = nn.BatchNorm2d(map_size)
+        conv2 = nn.ConvTranspose2d(map_size, map_size, 3, stride=1, padding=1)
+        nn.init.xavier_normal(conv2.weight)
+
+        resblock = nn.ModuleList()
+        resblock.append(conv1)
+        resblock.append(bn)
+        resblock.append(conv2)
+
+        return resblock
+
+    def apply_resblock(self, out, resblock):
+        out = resblock[0](out)
+        out = resblock[1](out)
+        out = F.relu(out)
+        out = resblock[2](out)
+
+        return out
+
     def __init__(self):
         super(GeneratorSkipConnections, self).__init__()
+
+        # TODO: Change convolutions to DepthWise Seperable convolutions
 
         # Upsampling layer
         self.deconv1 = nn.ConvTranspose2d(100, 128, 4, stride=4, padding=0)
         nn.init.xavier_normal(self.deconv1.weight)
+        self.bn1 = nn.BatchNorm2d(128)
 
         # Resnet block
-        self.deconv1A = nn.ConvTranspose2d(128, 128, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv1A.weight)
-        self.bn1 = nn.BatchNorm2d(128)
-        self.deconv1B = nn.ConvTranspose2d(128, 128, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv1B.weight)
+        self.resblock1A = self.make_resblock(128)
 
         # Upsampling layer
         self.deconv2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1)
         nn.init.xavier_normal(self.deconv2.weight)
+        self.bn2 = nn.BatchNorm2d(64)
 
         # Resnet block
-        self.deconv2A = nn.ConvTranspose2d(64, 64, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv2A.weight)
-        self.bn2 = nn.BatchNorm2d(64)
-        self.deconv2B = nn.ConvTranspose2d(64, 64, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv2B.weight)
+        self.resblock2A = self.make_resblock(64)
 
         # Upsampling layer 3
         self.deconv3 = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1)
         nn.init.xavier_normal(self.deconv3.weight)
+        self.bn3 = nn.BatchNorm2d(32)
 
         # Resnet block
-        self.deconv3A = nn.ConvTranspose2d(32, 32, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv3A.weight)
-        self.bn3 = nn.BatchNorm2d(32)
-        self.deconv3B = nn.ConvTranspose2d(32, 32, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv3B.weight)
+        self.resblock3A = self.make_resblock(32)
 
         # Upsampling layer 4
         self.deconv4 = nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1)
         nn.init.xavier_normal(self.deconv4.weight)
 
         # Resnet block
-        self.deconv4A = nn.ConvTranspose2d(3, 3, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv4A.weight)
-        self.bn4 = nn.BatchNorm2d(3)
-        self.deconv4B = nn.ConvTranspose2d(3, 3, 3, stride=1, padding=1)
-        nn.init.xavier_normal(self.deconv4B.weight)
+        self.resblock4A = self.make_resblock(3)
 
     def forward(self, x):
         out = x
@@ -145,41 +156,32 @@ class GeneratorSkipConnections(nn.Module):
         # In this case, we only use a single Resnet block instead of the entire Generator so the network is small enough to run on my laptop
         #
         # Upsample 1
-        out = upsampled = self.deconv1(out)
-        # Resnet block 1
-        out = self.deconv1A(out)
+        out = self.deconv1(out)
         out = self.bn1(out)
-        out = F.relu(out)
-        out = self.deconv1B(out)
-        out = upsampled + out
+        out = upsampled = F.relu(out)
+
+        # Resnet block 1
+        out += self.apply_resblock(out.clone(), self.resblock1A)
 
         # Upsample 2
-        out = upsampled = self.deconv2(out)
-        # Resnet block 2
-        out = self.deconv2A(out)
+        out = self.deconv2(out)
         out = self.bn2(out)
-        out = F.relu(out)
-        out = self.deconv2B(out)
-        out = upsampled + out
+        out = upsampled = F.relu(out)
+        # Resnet block 2
+        out += self.apply_resblock(out.clone(), self.resblock2A)
 
         # Upsample 3
-        out = upsampled = self.deconv3(out)
-        # Resnet block 3
-        out = self.deconv3A(out)
+        out = self.deconv3(out)
         out = self.bn3(out)
-        out = F.relu(out)
-        out = self.deconv3B(out)
-        out = upsampled + out
+        out = upsampled = F.relu(out)
+        # Resnet block 3
+        out += self.apply_resblock(out.clone(), self.resblock3A)
 
         # Upsample 4
         out = upsampled = self.deconv4(out)
 
         # Resnet block 4
-        out = self.deconv4A(out)
-        out = self.bn4(out)
-        out = F.relu(out)
-        out = self.deconv4B(out)
-        out = upsampled + out
+        out += self.apply_resblock(out.clone(), self.resblock4A)
 
         out = torch.tanh(out)
 

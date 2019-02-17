@@ -176,8 +176,10 @@ def main():
     import vanilla_gan.vanilla_gan
     vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
     vanilla_g_net = vanilla_gan.vanilla_gan.GeneratorSkipConnections()
-    vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0003)
-    vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0003)
+    #vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0003)
+    #vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0003)
+    vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
+    vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0001)
 
     # Load emojis
     train_dataloader, _ = get_emoji_loader('Windows')
@@ -226,6 +228,9 @@ def main():
                 print(generated_images.shape)
                 print(dog_data.shape)
                 print('g_loss:', g_loss)
+
+                print('Mean')
+                print(torch.mean(generated_images))
 
                 print(generated_images.shape)
                 save_samples(real_images, count, "real")
