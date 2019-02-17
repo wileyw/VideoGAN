@@ -175,7 +175,7 @@ def main():
 
     import vanilla_gan.vanilla_gan
     vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
-    vanilla_g_net = vanilla_gan.vanilla_gan.Generator()
+    vanilla_g_net = vanilla_gan.vanilla_gan.GeneratorSkipConnections()
     vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0003)
     vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0003)
 
