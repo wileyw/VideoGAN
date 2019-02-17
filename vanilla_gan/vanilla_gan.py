@@ -173,7 +173,6 @@ class GeneratorSkipConnections(nn.Module):
 
         # Upsample 4
         out = upsampled = self.deconv4(out)
-        out = torch.tanh(out)
 
         # Resnet block 4
         out = self.deconv4A(out)
@@ -181,5 +180,7 @@ class GeneratorSkipConnections(nn.Module):
         out = F.relu(out)
         out = self.deconv4B(out)
         out = upsampled + out
+
+        out = torch.tanh(out)
 
         return out
