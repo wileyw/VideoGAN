@@ -117,6 +117,8 @@ class GeneratorSkipConnections(nn.Module):
         super(GeneratorSkipConnections, self).__init__()
 
         # TODO: Change convolutions to DepthWise Seperable convolutions
+        # TODO: Need to fix Mode Collapse that is occuring in the GAN
+        # More info: https://www.quora.com/What-does-it-mean-if-all-produced-images-of-a-GAN-look-the-same
 
         # Upsampling layer
         self.deconv1 = nn.ConvTranspose2d(100, 128, 4, stride=4, padding=0)
