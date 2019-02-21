@@ -7,28 +7,32 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+#dtype = torch.FloatTensor
+dtype = torch.cuda.FloatTensor
+
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
 
-        self.conv1 = nn.Conv2d(3, 32, 4, stride=2, padding=1)
+        self.conv1 = nn.Conv2d(3, 32, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.conv1.weight)
-        self.bn1 = nn.BatchNorm2d(32)
+        self.bn1 = nn.BatchNorm2d(32).type(dtype)
 
-        self.conv2 = nn.Conv2d(32, 64, 4, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.conv2.weight)
-        self.bn2 = nn.BatchNorm2d(64)
+        self.bn2 = nn.BatchNorm2d(64).type(dtype)
 
-        self.conv3 = nn.Conv2d(64, 128, 4, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.conv3.weight)
-        self.bn3 = nn.BatchNorm2d(128)
+        self.bn3 = nn.BatchNorm2d(128).type(dtype)
 
-        self.conv4 = nn.Conv2d(128, 1, 4, stride=4, padding=1)
+        self.conv4 = nn.Conv2d(128, 1, 4, stride=4, padding=1).type(dtype)
         nn.init.xavier_normal(self.conv4.weight)
 
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        x = x.type(dtype)
         # Conv 1
         out = self.conv1(x)
         out = self.bn1(out)
@@ -92,10 +96,10 @@ class Generator(nn.Module):
 
 class GeneratorSkipConnections(nn.Module):
     def make_resblock(self, map_size):
-        conv1 = nn.ConvTranspose2d(map_size, map_size, 3, stride=1, padding=1)
+        conv1 = nn.ConvTranspose2d(map_size, map_size, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(conv1.weight)
-        bn = nn.BatchNorm2d(map_size)
-        conv2 = nn.ConvTranspose2d(map_size, map_size, 3, stride=1, padding=1)
+        bn = nn.BatchNorm2d(map_size).type(dtype)
+        conv2 = nn.ConvTranspose2d(map_size, map_size, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(conv2.weight)
 
         resblock = nn.ModuleList()
@@ -121,37 +125,38 @@ class GeneratorSkipConnections(nn.Module):
         # More info: https://www.quora.com/What-does-it-mean-if-all-produced-images-of-a-GAN-look-the-same
 
         # Upsampling layer
-        self.deconv1 = nn.ConvTranspose2d(100, 128, 4, stride=4, padding=0)
+        self.deconv1 = nn.ConvTranspose2d(100, 128, 4, stride=4, padding=0).type(dtype)
         nn.init.xavier_normal(self.deconv1.weight)
-        self.bn1 = nn.BatchNorm2d(128)
+        self.bn1 = nn.BatchNorm2d(128).type(dtype)
 
         # Resnet block
         self.resblock1A = self.make_resblock(128)
 
         # Upsampling layer
-        self.deconv2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1)
+        self.deconv2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv2.weight)
-        self.bn2 = nn.BatchNorm2d(64)
+        self.bn2 = nn.BatchNorm2d(64).type(dtype)
 
         # Resnet block
         self.resblock2A = self.make_resblock(64)
 
         # Upsampling layer 3
-        self.deconv3 = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1)
+        self.deconv3 = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv3.weight)
-        self.bn3 = nn.BatchNorm2d(32)
+        self.bn3 = nn.BatchNorm2d(32).type(dtype)
 
         # Resnet block
         self.resblock3A = self.make_resblock(32)
 
         # Upsampling layer 4
-        self.deconv4 = nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1)
+        self.deconv4 = nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv4.weight)
 
         # Resnet block
         self.resblock4A = self.make_resblock(3)
 
     def forward(self, x):
+        x = x.type(dtype)
         out = x
 
         # Multi scale image generation seems quite similar to using ResNet skip connections
