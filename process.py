@@ -15,6 +15,9 @@ from torch.autograd import Variable
 import d_net
 import g_net
 
+#dtype = torch.FloatTensor
+dtype = torch.cuda.FloatTensor
+
 class PacmanDataset(torch.utils.data.Dataset):
     def __init__(self, videos_dir):
         self.videos_dir = videos_dir
@@ -86,7 +89,7 @@ def save_dummy_data(dummy_data, i):
 
 def save_samples(generated_images, iteration, prefix):
     import scipy
-    generated_images = generated_images.data.numpy()
+    generated_images = generated_images.data.cpu().numpy()
 
     num_images, channels, cell_h, cell_w = generated_images.shape
     ncols = int(np.sqrt(num_images))
@@ -176,6 +179,8 @@ def main():
     import vanilla_gan.vanilla_gan
     vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
     vanilla_g_net = vanilla_gan.vanilla_gan.GeneratorSkipConnections()
+    vanilla_d_net.type(dtype)
+    vanilla_g_net.type(dtype)
     #vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0003)
     #vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0003)
     vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
