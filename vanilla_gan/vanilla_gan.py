@@ -9,8 +9,7 @@ import torch.nn.functional as F
 
 import config
 
-dtype = torch.FloatTensor
-#dtype = torch.cuda.FloatTensor
+dtype = config.dtype
 
 class Discriminator(nn.Module):
     def __init__(self):

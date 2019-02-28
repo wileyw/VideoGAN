@@ -16,8 +16,7 @@ import d_net
 import g_net
 import config
 
-dtype = torch.FloatTensor
-#dtype = torch.cuda.FloatTensor
+dtype = config.dtype
 
 class PacmanDataset(torch.utils.data.Dataset):
     def __init__(self, videos_dir):
