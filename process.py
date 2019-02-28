@@ -14,9 +14,10 @@ from torch.autograd import Variable
 
 import d_net
 import g_net
+import config
 
-#dtype = torch.FloatTensor
-dtype = torch.cuda.FloatTensor
+dtype = torch.FloatTensor
+#dtype = torch.cuda.FloatTensor
 
 class PacmanDataset(torch.utils.data.Dataset):
     def __init__(self, videos_dir):
@@ -207,10 +208,17 @@ def main():
             noise_size = 100
             sampled_noise = sample_noise(batch_size, noise_size)
 
+            # WGAN loss
+            # https://github.com/keras-team/keras-contrib/blob/master/examples/improved_wgan.py
+
             # Step 1. Make one discriminator step
             generated_images = vanilla_g_net(sampled_noise)
-            d_loss_real = (vanilla_d_net(real_images) - 1).pow(2).mean()
-            d_loss_fake = (vanilla_d_net(generated_images)).pow(2).mean()
+            if config.use_wgan_loss:
+                d_loss_real = (vanilla_d_net(real_images) * -1.0).pow(2).mean()
+                d_loss_fake = (vanilla_d_net(generated_images) * 1.0).pow(2).mean()
+            else:
+                d_loss_real = (vanilla_d_net(real_images) - 1).pow(2).mean()
+                d_loss_fake = (vanilla_d_net(generated_images)).pow(2).mean()
             d_loss = .5 * (d_loss_fake + d_loss_real)
             d_loss.backward()
             vanilla_d_optimizer.step()
