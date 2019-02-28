@@ -214,8 +214,8 @@ def main():
             # Step 1. Make one discriminator step
             generated_images = vanilla_g_net(sampled_noise)
             if config.use_wgan_loss:
-                d_loss_real = (vanilla_d_net(real_images) * -1.0).pow(2).mean()
-                d_loss_fake = (vanilla_d_net(generated_images) * 1.0).pow(2).mean()
+                d_loss_real = (vanilla_d_net(real_images) * -1.0).mean()
+                d_loss_fake = (vanilla_d_net(generated_images) * 1.0).mean()
             else:
                 d_loss_real = (vanilla_d_net(real_images) - 1).pow(2).mean()
                 d_loss_fake = (vanilla_d_net(generated_images)).pow(2).mean()
