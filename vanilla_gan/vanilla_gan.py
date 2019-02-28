@@ -7,8 +7,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-#dtype = torch.FloatTensor
-dtype = torch.cuda.FloatTensor
+import config
+
+dtype = torch.FloatTensor
+#dtype = torch.cuda.FloatTensor
 
 class Discriminator(nn.Module):
     def __init__(self):
@@ -50,7 +52,9 @@ class Discriminator(nn.Module):
 
         # Conv 4
         out = self.conv4(out)
-        out = self.sigmoid(out)
+        if not config.use_wgan_loss:
+            out = self.sigmoid(out)
+
         return out
 
 class Generator(nn.Module):
