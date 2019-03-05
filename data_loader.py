@@ -17,7 +17,7 @@ class DataLoader:
         self.num_clips = num_clips
         self.train_dir_clips = train_dir_clips
 
-    def get_train_batch():
+    def get_train_batch(self):
         """
         Loads batch_size clips from the database of preprocessed training clips.
 
@@ -29,10 +29,11 @@ class DataLoader:
                           self.train_width,
                           (3 * (self.hist_len + 1))],
                          dtype=np.float32)
-        for i in xrange(batch_size):
-            path = (self.trian_dir_clips
-                    str(np.random.choice(c.NUM_CLIPS))
-                    '.npz')
+        for i in range(self.batch_size):
+            path = os.path.join(
+                self.train_dir_clips,
+                str(np.random.choice(self.num_clips)) +
+                '.npz')
             clip = np.load(path)['arr_0']
 
             clips[i] = clip
