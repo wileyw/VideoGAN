@@ -127,7 +127,9 @@ class GeneratorSkipConnections(nn.Module):
 
         resblock = nn.ModuleList()
         resblock.append(conv1_depthwise)
+        resblock.append(conv1_pointwise)
         resblock.append(bn)
+        resblock.append(conv2_depthwise)
         resblock.append(conv2_pointwise)
 
         return resblock
@@ -135,8 +137,10 @@ class GeneratorSkipConnections(nn.Module):
     def apply_resblock(self, out, resblock):
         out = resblock[0](out)
         out = resblock[1](out)
-        out = F.relu(out)
         out = resblock[2](out)
+        out = F.relu(out)
+        out = resblock[3](out)
+        out = resblock[4](out)
 
         return out
 
