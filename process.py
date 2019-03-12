@@ -229,7 +229,7 @@ def main():
             d_loss.backward()
             vanilla_d_optimizer.step()
             end = time.time()
-            print('D_Time:', end - start)
+            #print('D_Time:', end - start)
 
             # batch_size x noise_size x 1 x 1
             batch_size = 16
