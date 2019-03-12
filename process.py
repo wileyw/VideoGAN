@@ -15,6 +15,7 @@ from torch.autograd import Variable
 import d_net
 import g_net
 import config
+import time
 
 dtype = config.dtype
 
@@ -186,6 +187,11 @@ def main():
     vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
     vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0001)
 
+    d_num_params = sum(p.numel() for p in vanilla_d_net.parameters())
+    g_num_params = sum(p.numel() for p in vanilla_g_net.parameters())
+    print('#D parameters:', d_num_params)
+    print('#G parameters:', g_num_params)
+
     # Load emojis
     train_dataloader, _ = get_emoji_loader('Windows')
 
@@ -211,6 +217,7 @@ def main():
             # https://github.com/keras-team/keras-contrib/blob/master/examples/improved_wgan.py
 
             # Step 1. Make one discriminator step
+            start = time.time()
             generated_images = vanilla_g_net(sampled_noise)
             if config.use_wgan_loss:
                 d_loss_real = (vanilla_d_net(real_images) * 1.0).mean()
@@ -221,6 +228,8 @@ def main():
             d_loss = .5 * (d_loss_fake + d_loss_real)
             d_loss.backward()
             vanilla_d_optimizer.step()
+            end = time.time()
+            print('D_Time:', end - start)
 
             # batch_size x noise_size x 1 x 1
             batch_size = 16
@@ -228,6 +237,7 @@ def main():
             sampled_noise = sample_noise(batch_size, noise_size)
 
             # Step 2. Make one generator step
+            start = time.time()
             generated_images = vanilla_g_net(sampled_noise)
             if config.use_wgan_loss:
                 g_loss_fake = (vanilla_d_net(generated_images) * 1.0).mean()
@@ -236,6 +246,8 @@ def main():
             g_loss = g_loss_fake
             g_loss.backward()
             vanilla_g_optimizer.step()
+            end = time.time()
+            #print('G_Time:', end - start)
 
             if count % 100 == 0:
                 print('d_loss_real:', d_loss_real)
