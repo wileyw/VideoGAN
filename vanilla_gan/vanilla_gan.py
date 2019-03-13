@@ -16,31 +16,31 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
 
         nin, nout = 3, 32
-        self.conv1_depthwise = nn.Conv2d(nin, nin, 4, stride=2, padding=1, groups=nin).type(dtype)
-        self.conv1_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
+        self.conv1_depthwise = nn.Conv2d(nin, nout, 4, stride=2, padding=1, groups=1).type(dtype)
+        #self.conv1_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
         nn.init.xavier_normal(self.conv1_depthwise.weight)
-        nn.init.xavier_normal(self.conv1_pointwise.weight)
+        #nn.init.xavier_normal(self.conv1_pointwise.weight)
         self.bn1 = nn.BatchNorm2d(32).type(dtype)
 
         nin, nout = 32, 64
-        self.conv2_depthwise = nn.Conv2d(nin, nin, 4, stride=2, padding=1, groups=nin).type(dtype)
-        self.conv2_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
+        self.conv2_depthwise = nn.Conv2d(nin, nout, 4, stride=2, padding=1, groups=1).type(dtype)
+        #self.conv2_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
         nn.init.xavier_normal(self.conv2_depthwise.weight)
-        nn.init.xavier_normal(self.conv2_pointwise.weight)
+        #nn.init.xavier_normal(self.conv2_pointwise.weight)
         self.bn2 = nn.BatchNorm2d(64).type(dtype)
 
         nin, nout = 64, 128
-        self.conv3_depthwise = nn.Conv2d(nin, nin, 4, stride=2, padding=1, groups=nin).type(dtype)
-        self.conv3_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
+        self.conv3_depthwise = nn.Conv2d(nin, nout, 4, stride=2, padding=1, groups=1).type(dtype)
+        #self.conv3_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
         nn.init.xavier_normal(self.conv3_depthwise.weight)
-        nn.init.xavier_normal(self.conv3_pointwise.weight)
+        #nn.init.xavier_normal(self.conv3_pointwise.weight)
         self.bn3 = nn.BatchNorm2d(128).type(dtype)
 
         nin, nout = 128, 1
-        self.conv4_depthwise = nn.Conv2d(nin, nin, 4, stride=1, padding=1, groups=nin).type(dtype)
-        self.conv4_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
+        self.conv4_depthwise = nn.Conv2d(nin, nout, 4, stride=1, padding=1, groups=1).type(dtype)
+        #self.conv4_pointwise = nn.Conv2d(nin, nout, 1).type(dtype)
         nn.init.xavier_normal(self.conv4_depthwise.weight)
-        nn.init.xavier_normal(self.conv4_pointwise.weight)
+        #nn.init.xavier_normal(self.conv4_pointwise.weight)
 
         self.sigmoid = nn.Sigmoid()
 
@@ -48,25 +48,25 @@ class Discriminator(nn.Module):
         x = x.type(dtype)
         # Conv 1
         out = self.conv1_depthwise(x)
-        out = self.conv1_pointwise(out)
+        #out = self.conv1_pointwise(out)
         out = self.bn1(out)
         out = F.relu(out)
 
         # Conv 2
         out = self.conv2_depthwise(out)
-        out = self.conv2_pointwise(out)
+        #out = self.conv2_pointwise(out)
         out = self.bn2(out)
         out = F.relu(out)
 
         # Conv 3
         out = self.conv3_depthwise(out)
-        out = self.conv3_pointwise(out)
+        #out = self.conv3_pointwise(out)
         out = self.bn3(out)
         out = F.relu(out)
 
         # Conv 4
         out = self.conv4_depthwise(out)
-        out = self.conv4_pointwise(out)
+        #out = self.conv4_pointwise(out)
         if not config.use_wgan_loss:
             out = self.sigmoid(out)
 
