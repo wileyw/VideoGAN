@@ -19,16 +19,22 @@ class DataLoader:
 
     def get_train_batch(self):
         """
-        Loads batch_size clips from the database of preprocessed training clips.
+        Loads batch_size clips and ground truth frame from the database of preprocessed training clips.
 
         @return: An array of shape
-                [batch_size, train_height, train_width, (3 * (hist_len + 1))].
+                ([batch_size, train_height, train_width, 3 * hist_len],
+                 [batch_size, train_height, train_diwth, 3])
         """
-        clips = np.empty([self.batch_size,
-                          self.train_height,
-                          self.train_width,
-                          (3 * (self.hist_len + 1))],
-                         dtype=np.float32)
+        clips_x = np.empty([self.batch_size,
+                            self.train_height,
+                            self.train_width,
+                            (3 * self.hist_len)],
+                            dtype=np.float32)
+        clips_y = np.empty([self.batch_size,
+                            self.train_height,
+                            self.train_width,
+                            3],
+                            dtype=np.float32)
         for i in range(self.batch_size):
             path = os.path.join(
                 self.train_dir_clips,
@@ -36,6 +42,7 @@ class DataLoader:
                 '.npz')
             clip = np.load(path)['arr_0']
 
-            clips[i] = clip
+            clips_x[i] = clip[:, :, :3 * self.hist_len]
+            clips_y[i] = clip[:, :, 3 * self.hist_len:]
 
-        return clips
+        return clips_x, clips_y
