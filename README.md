@@ -7,10 +7,19 @@ https://arxiv.org/pdf/1511.05440.pdf
 Pacman dataset:
 https://drive.google.com/open?id=0Byf787GZQ7KvV25xMWpWbV9LdUU
 
-The user should download and unzip the dataset to VideoGAN/Ms_Pacman
-
 Adversarial Video Generation:
 https://github.com/dyelax/Adversarial_Video_Generation
+
+## Generate VideoGAN Data
+The VideoGAN training data requires preprocessing. To generate the VideoGAN data:
+
+1. Download the Ms_Pacman dataset from https://drive.google.com/open?id=0Byf787GZQ7KvV25xMWpWbV9LdUU
+2. Unzip Ms_Pacman dataset in `VideoGAN/Ms_Pacman`
+3. Run the following commands in `VideoGAN`
+```
+mkdir train
+python process_data.py Ms_Pacman train
+```
 
 # Instructions to run Vanilla GAN
 ```
