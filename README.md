@@ -27,3 +27,6 @@ bash vanilla_gan/download_dataset.sh
 cp -r a4-code-v2-updated/emojis emojis
 python3 process.py
 ```
+
+# Tips and tricks to train GANs
+https://github.com/soumith/ganhacks
