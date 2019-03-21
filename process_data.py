@@ -15,7 +15,7 @@ def clip_l2_diff(clip, hist_len):
     """
     """
     diff = 0
-    for i in xrange(hist_len):
+    for i in range(hist_len):
         frame = clip[:, :, 3 * i:3 * (i + 1)]
         next_frame = clip[:, :, 3 * (i + 1):3 * (i + 2)]
         diff += np.sum(np.square(next_frame - frame))
@@ -31,7 +31,7 @@ def process_clip(train_dir, frame_h, frame_w,
     # repeat until we have a clip with movement in it.
     take_first = np.random.choice(2, p=[0.95, 0.05])
     cropped_clip = np.empty([frame_h, frame_w, 3 * (hist_len + 1)])
-    for i in xrange(100):  # cap at 100 trials in case the clip has no movement anywhere
+    for i in range(100):  # cap at 100 trials in case the clip has no movement anywhere
         crop_x = np.random.choice(data_util.FULL_WIDTH - frame_w + 1)
         crop_y = np.random.choice(data_util.FULL_HEIGHT - frame_h + 1)
         cropped_clip = clip[crop_y:crop_y + frame_h, crop_x:crop_x + frame_w, :]
