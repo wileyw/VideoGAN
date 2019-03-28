@@ -76,23 +76,23 @@ class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
 
-        self.deconv1 = nn.ConvTranspose2d(100, 128, 4, stride=4, padding=0)
+        self.deconv1 = nn.ConvTranspose2d(100, 128, 4, stride=4, padding=0).type(dtype)
         nn.init.xavier_normal(self.deconv1.weight)
-        self.bn1 = nn.BatchNorm2d(128)
+        self.bn1 = nn.BatchNorm2d(128).type(dtype)
 
-        self.deconv2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1)
+        self.deconv2 = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv2.weight)
-        self.bn2 = nn.BatchNorm2d(64)
+        self.bn2 = nn.BatchNorm2d(64).type(dtype)
 
-        self.deconv3 = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1)
+        self.deconv3 = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv3.weight)
-        self.bn3 = nn.BatchNorm2d(32)
+        self.bn3 = nn.BatchNorm2d(32).type(dtype)
 
-        self.deconv4 = nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1)
+        self.deconv4 = nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv4.weight)
 
     def forward(self, x):
-        out = self.deconv1(x)
+        out = self.deconv1(x.type(dtype))
         # TODO: Investigate putting Batch Norm before versus after the RELU layer
         # Resources:
         # https://www.reddit.com/r/MachineLearning/comments/67gonq/d_batch_normalization_before_or_after_relu/

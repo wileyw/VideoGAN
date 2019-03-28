@@ -212,8 +212,8 @@ def main():
         for batch in train_dataloader:
             # TESTING: Vanilla Video Gan
             clips_x, clips_y = pacman_dataloader.get_train_batch()
-            clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1))
-            clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1))
+            clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1)).type(dtype)
+            clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1)).type(dtype)
 
             # Before implementing VideoGAN, I implemented a Vanilla GAN from
             # http://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/assignments/a4-handout.pdf
