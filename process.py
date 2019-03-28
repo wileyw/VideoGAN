@@ -183,15 +183,25 @@ def main():
     vanilla_g_net = vanilla_gan.vanilla_gan.Generator()
     vanilla_d_net.type(dtype)
     vanilla_g_net.type(dtype)
-    #vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0003)
-    #vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0003)
     vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
     vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0001)
+
+    import vanilla_gan.video_gan
+    video_d_net = vanilla_gan.video_gan.Discriminator()
+    video_g_net = vanilla_gan.video_gan.Generator()
+    video_d_net.type(dtype)
+    video_g_net.type(dtype)
+    video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
+    video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
 
     d_num_params = sum(p.numel() for p in vanilla_d_net.parameters())
     g_num_params = sum(p.numel() for p in vanilla_g_net.parameters())
     print('#D parameters:', d_num_params)
     print('#G parameters:', g_num_params)
+
+    # Load Pacman dataset
+    import data_loader
+    pacman_dataloader = data_loader.DataLoader('train', 500, 16, 32, 32, 4)
 
     # Load emojis
     train_dataloader, _ = get_emoji_loader('Windows')
@@ -200,6 +210,11 @@ def main():
     count = 0
     for i in range(1, 5000):
         for batch in train_dataloader:
+            # TESTING: Vanilla Video Gan
+            clips_x, clips_y = pacman_dataloader.get_train_batch()
+            clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1))
+            clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1))
+
             # Before implementing VideoGAN, I implemented a Vanilla GAN from
             # http://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/assignments/a4-handout.pdf
             # Next step is to implement VideoGAN
@@ -208,6 +223,10 @@ def main():
 
             vanilla_d_optimizer.zero_grad()
             vanilla_g_optimizer.zero_grad()
+
+            # TESTING: Vanilla Video Gan
+            video_d_optimizer.zero_grad()
+            video_g_optimizer.zero_grad()
 
             # batch_size x noise_size x 1 x 1
             batch_size = 16
@@ -220,6 +239,10 @@ def main():
             # Step 1. Make one discriminator step
             start = time.time()
             generated_images = vanilla_g_net(sampled_noise)
+
+            # TESTING: Vanilla Video Gan
+            video_images = video_g_net(clips_x)
+
             if config.use_wgan_loss:
                 d_loss_real = (vanilla_d_net(real_images) * 1.0).mean()
                 d_loss_fake = (vanilla_d_net(generated_images) * -1.0).mean()
@@ -231,6 +254,13 @@ def main():
             vanilla_d_optimizer.step()
             end = time.time()
             #print('D_Time:', end - start)
+
+            # TESTING: Vanilla Video Gan
+            video_d_loss_real = (video_d_net(clips_y) - 1).pow(2).mean()
+            video_d_loss_fake = (video_d_net(video_images)).pow(2).mean()
+            video_d_loss = .5 * (video_d_loss_real + video_d_loss_fake)
+            video_d_loss.backward()
+            video_d_optimizer.step()
 
             # batch_size x noise_size x 1 x 1
             batch_size = 16
@@ -250,6 +280,13 @@ def main():
             end = time.time()
             #print('G_Time:', end - start)
 
+            # TESTING: Vanilla Video Gan
+            video_images = video_g_net(clips_x)
+            video_g_loss_fake = (video_d_net(video_images) - 1).pow(2).mean()
+            video_g_loss = video_g_loss_fake
+            video_g_loss.backward()
+            video_g_optimizer.step()
+
             if count % 100 == 0:
                 print('d_loss_real:', d_loss_real)
                 print('d_loss_fake:', d_loss_fake)
@@ -263,6 +300,9 @@ def main():
                 print(generated_images.shape)
                 save_samples(real_images, count, "real")
                 save_samples(generated_images, count, "fake")
+
+                save_samples(clips_y, count, "video_real")
+                save_samples(video_images, count, "video_fake")
             count += 1
 
             # Record loss values
