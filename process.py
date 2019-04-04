@@ -19,75 +19,6 @@ import time
 
 dtype = config.dtype
 
-class PacmanDataset(torch.utils.data.Dataset):
-    def __init__(self, videos_dir):
-        self.videos_dir = videos_dir
-        image_dirs = glob.glob(os.path.join(self.videos_dir, '*'))
-
-        self.before_image_paths = []
-        self.after_image_paths = []
-        HIST_LEN = 1
-        for image_dir in image_dirs:
-            image_paths = sorted(glob.glob(os.path.join(image_dir, '*.png')))
-
-            for i in range(len(image_paths) - HIST_LEN):
-                self.before_image_paths.append(image_paths[i:i + HIST_LEN])
-                self.after_image_paths.append(image_paths[i + HIST_LEN])
-
-    def __len__(self):
-        return len(self.before_image_paths)
-
-    def __getitem__(self, idx):
-        history_images = []
-        for image_path0 in self.before_image_paths[idx]:
-            image0 = io.imread(image_path0)
-            image0 = resize(image0, (32, 32), anti_aliasing=True)
-            image0 = np.rollaxis(image0, 2, 0) / 255.
-            history_images.append(torch.tensor(image0))
-
-        stacked_history = torch.cat(history_images, 0)
-
-        image_path1 = self.after_image_paths[idx + 1]
-        image1 = io.imread(image_path1)
-        image1 = resize(image1, (32, 32), anti_aliasing=True)
-        image1 = np.rollaxis(image1, 2, 0) / 255.
-
-        return {'image0': stacked_history, 'image1': image1}
-
-def load_dummy_data():
-    dog_img = cv2.imread('dog.jpg')
-    dog_img = cv2.resize(dog_img, (32, 32))
-
-    dog_data = np.rollaxis(dog_img, 2, 0) / 255.
-    dog_data = np.expand_dims(dog_data, axis=0)
-
-    dog_data = torch.from_numpy(dog_data).float()
-
-    return dog_data
-
-def display_dummy_data(dummy_data):
-    dummy_data = dummy_data.numpy()
-
-    img_data = np.squeeze(dummy_data)
-    img_data = np.rollaxis(img_data, 0, 3) * 255.
-    img_data = img_data.astype(np.uint8)
-
-    cv2.imshow('img', img_data)
-    cv2.waitKey(0)
-
-def save_dummy_data(dummy_data, i):
-    dummy_data = dummy_data.detach().numpy()
-
-    img_data = np.squeeze(dummy_data)
-    img_data = np.rollaxis(img_data, 0, 3) * 255.
-    img_data = img_data.astype(np.uint8)
-
-    if not os.path.exists('output'):
-        os.makedirs('output')
-
-    #img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
-    cv2.imwrite('output/test{:05d}.jpg'.format(i), img_data)
-
 def save_samples(generated_images, iteration, prefix):
     import scipy
     generated_images = generated_images.data.cpu().numpy()
@@ -138,10 +69,6 @@ def get_emoji_loader(emoji_type):
     return train_dloader, test_dloader
 
 def main():
-    #dataset = PacmanDataset('Ms_Pacman/Train/')
-    dataset = PacmanDataset('Ms_Pacman/Test/')
-    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1)
-
     SCALE_CONV_FSM_D = [[3, 64],
             [3, 64, 128, 128],
             [3, 128, 256, 256],
@@ -160,17 +87,6 @@ def main():
             scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
 
     G = g_net.GeneratorDefinitions()
-    import dummy_net
-    Dummy = dummy_net.Dummy()
-
-    # Load dummy data
-    dog_data = load_dummy_data()
-
-    # Display dummy data
-    #display_dummy_data(dog_data)
-
-    print('Dummy Parameters', list(Dummy.parameters()))
-    dummy_optimizer = optim.Adam(Dummy.parameters(), lr=0.1)
     g_optimizer = optim.Adam(G.parameters(), lr=0.001)
     d_optimizer = optim.Adam(D.parameters(), lr=0.001)
 
@@ -206,7 +122,6 @@ def main():
     # Load emojis
     train_dataloader, _ = get_emoji_loader('Windows')
 
-    save_dummy_data(dog_data, 0)
     count = 0
     for i in range(1, 5000):
         for batch in train_dataloader:
@@ -291,7 +206,6 @@ def main():
                 print('d_loss_real:', d_loss_real)
                 print('d_loss_fake:', d_loss_fake)
                 print(generated_images.shape)
-                print(dog_data.shape)
                 print('g_loss:', g_loss)
 
                 print('Mean')
