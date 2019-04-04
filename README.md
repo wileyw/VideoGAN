@@ -35,3 +35,4 @@ https://github.com/soumith/ganhacks
 1. Generate the entire Pacman board from the generative network
 2. Evaluate predicted frames using Peak Signal to Noise Ratio (PSNR), Structural
 Similarity Index Measure (SSIM), [Inception Distance](https://nealjean.com/ml/frechet-inception-distance/)
+3. Change loss function to use log() function
