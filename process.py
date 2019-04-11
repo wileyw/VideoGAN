@@ -20,7 +20,7 @@ import time
 import vanilla_gan
 import vanilla_gan.video_gan
 import data_loader
-
+import loss_funs
 
 dtype = config.dtype
 
@@ -208,9 +208,12 @@ def main():
                 #print('G_Time:', end - start)
 
                 # TESTING: Vanilla Video Gan
-                video_images = video_g_net(clips_x)
+                video_images = video_g_net(clips_x)                
                 video_g_loss_fake = (video_d_net(video_images) - 1).pow(2).mean()
-                video_g_loss = video_g_loss_fake
+                d_preds = video_d_net(video_images) # TODO: Make sure this is working.
+                gt_frames = clips_y # TODO: make clips_y at different scales.
+                gen_frames = video_images # TODO: make the generated frames multi scale.
+                video_g_loss = combined_loss(gen_frames, gt_frames, d_preds)
                 video_g_loss.backward()
                 video_g_optimizer.step()
 
