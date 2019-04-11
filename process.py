@@ -18,6 +18,7 @@ import config
 import time
 
 import vanilla_gan
+import vanilla_gan.vanilla_gan
 import vanilla_gan.video_gan
 import data_loader
 import loss_funs
