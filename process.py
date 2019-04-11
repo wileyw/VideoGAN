@@ -18,6 +18,7 @@ import config
 import time
 
 import vanilla_gan
+import vanilla_gan.video_gan
 import data_loader
 
 
@@ -132,23 +133,25 @@ def main():
     count = 0
     for i in range(1, 5000):
         for batch in train_dataloader:
-            # TESTING: Vanilla Video Gan
-            clips_x, clips_y = pacman_dataloader.get_train_batch()
-            clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1)).type(dtype)
-            clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1)).type(dtype)
+            if VIDEO_GAN:
+                clips_x, clips_y = pacman_dataloader.get_train_batch()
+                clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1)).type(dtype)
+                clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1)).type(dtype)
 
-            # Before implementing VideoGAN, I implemented a Vanilla GAN from
-            # http://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/assignments/a4-handout.pdf
-            # Next step is to implement VideoGAN
-            real_images, labels = batch
-            real_images = Variable(real_images)
 
-            vanilla_d_optimizer.zero_grad()
-            vanilla_g_optimizer.zero_grad()
+            if VANILLA_GAN:
+                # Before implementing VideoGAN, I implemented a Vanilla GAN from
+                # http://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/assignments/a4-handout.pdf
+                # Next step is to implement VideoGAN
+                real_images, labels = batch
+                real_images = Variable(real_images)
 
-            # TESTING: Vanilla Video Gan
-            video_d_optimizer.zero_grad()
-            video_g_optimizer.zero_grad()
+                vanilla_d_optimizer.zero_grad()
+                vanilla_g_optimizer.zero_grad()
+
+            if VIDEO_GAN:
+                video_d_optimizer.zero_grad()
+                video_g_optimizer.zero_grad()
 
             # batch_size x noise_size x 1 x 1
             batch_size = 16
@@ -212,20 +215,20 @@ def main():
                 video_g_optimizer.step()
 
             if count % 100 == 0:
-                print('d_loss_real:', d_loss_real)
-                print('d_loss_fake:', d_loss_fake)
-                print(generated_images.shape)
-                print('g_loss:', g_loss)
+                if VANILLA_GAN:
+                    print('d_loss_real:', d_loss_real)
+                    print('d_loss_fake:', d_loss_fake)
+                    print('g_loss:', g_loss)
 
-                print('Mean')
-                print(torch.mean(generated_images))
+                    print('Mean')
+                    print(torch.mean(generated_images))
 
-                print(generated_images.shape)
-                save_samples(real_images, count, "real")
-                save_samples(generated_images, count, "fake")
+                    save_samples(real_images, count, "real")
+                    save_samples(generated_images, count, "fake")
 
-                save_samples(clips_y, count, "video_real")
-                save_samples(video_images, count, "video_fake")
+                if VIDEO_GAN:
+                    save_samples(clips_y, count, "video_real")
+                    save_samples(video_images, count, "video_fake")
             count += 1
 
             if VANILLA_GAN:
