@@ -17,7 +17,14 @@ import g_net
 import config
 import time
 
+import vanilla_gan
+import data_loader
+
+
 dtype = config.dtype
+
+VIDEO_GAN = True
+VANILLA_GAN = not VIDEO_GAN
 
 def save_samples(generated_images, iteration, prefix):
     import scipy
@@ -82,41 +89,41 @@ def main():
             [1024, 512, 1],
             [1024, 512, 1]]
 
-    D = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
-            conv_layer_fms_list=SCALE_CONV_FSM_D,
-            scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
+    # D = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
+    #         conv_layer_fms_list=SCALE_CONV_FSM_D,
+    #         scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
 
-    G = g_net.GeneratorDefinitions()
-    g_optimizer = optim.Adam(G.parameters(), lr=0.001)
-    d_optimizer = optim.Adam(D.parameters(), lr=0.001)
+    # G = g_net.GeneratorDefinitions()
+    # g_optimizer = optim.Adam(G.parameters(), lr=0.001)
+    # d_optimizer = optim.Adam(D.parameters(), lr=0.001)
 
-    vanilla_d_losses = []
-    vanilla_g_losses = []
+    if VANILLA_GAN:
+        vanilla_d_losses = []
+        vanilla_g_losses = []
 
-    import vanilla_gan.vanilla_gan
-    vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
-    #vanilla_g_net = vanilla_gan.vanilla_gan.GeneratorSkipConnections()
-    vanilla_g_net = vanilla_gan.vanilla_gan.Generator()
-    vanilla_d_net.type(dtype)
-    vanilla_g_net.type(dtype)
-    vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
-    vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0001)
+        vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
+        #vanilla_g_net = vanilla_gan.vanilla_gan.GeneratorSkipConnections()
+        vanilla_g_net = vanilla_gan.vanilla_gan.Generator()
+        vanilla_d_net.type(dtype)
+        vanilla_g_net.type(dtype)
+        vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
+        vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0001)
 
-    import vanilla_gan.video_gan
-    video_d_net = vanilla_gan.video_gan.Discriminator()
-    video_g_net = vanilla_gan.video_gan.Generator()
-    video_d_net.type(dtype)
-    video_g_net.type(dtype)
-    video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
-    video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
+        d_num_params = sum(p.numel() for p in vanilla_d_net.parameters())
+        g_num_params = sum(p.numel() for p in vanilla_g_net.parameters())
+        print('#D parameters:', d_num_params)
+        print('#G parameters:', g_num_params)
 
-    d_num_params = sum(p.numel() for p in vanilla_d_net.parameters())
-    g_num_params = sum(p.numel() for p in vanilla_g_net.parameters())
-    print('#D parameters:', d_num_params)
-    print('#G parameters:', g_num_params)
+    if VIDEO_GAN:
+        video_d_net = vanilla_gan.video_gan.Discriminator()
+        video_g_net = vanilla_gan.video_gan.Generator()
+        video_d_net.type(dtype)
+        video_g_net.type(dtype)
+        video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
+        video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
+
 
     # Load Pacman dataset
-    import data_loader
     pacman_dataloader = data_loader.DataLoader('train', 500, 16, 32, 32, 4)
 
     # Load emojis
@@ -151,56 +158,58 @@ def main():
             # WGAN loss
             # https://github.com/keras-team/keras-contrib/blob/master/examples/improved_wgan.py
 
-            # Step 1. Make one discriminator step
-            start = time.time()
-            generated_images = vanilla_g_net(sampled_noise)
+            if VANILLA_GAN:
+                # Step 1. Make one discriminator step
+                start = time.time()
+                generated_images = vanilla_g_net(sampled_noise)
 
-            # TESTING: Vanilla Video Gan
-            video_images = video_g_net(clips_x)
+                if config.use_wgan_loss:
+                    d_loss_real = (vanilla_d_net(real_images) * 1.0).mean()
+                    d_loss_fake = (vanilla_d_net(generated_images) * -1.0).mean()
+                else:
+                    d_loss_real = (vanilla_d_net(real_images) - 1).pow(2).mean()
+                    d_loss_fake = (vanilla_d_net(generated_images)).pow(2).mean()
+                d_loss = .5 * (d_loss_fake + d_loss_real)
+                d_loss.backward()
+                vanilla_d_optimizer.step()
+                end = time.time()
+                #print('D_Time:', end - start)
 
-            if config.use_wgan_loss:
-                d_loss_real = (vanilla_d_net(real_images) * 1.0).mean()
-                d_loss_fake = (vanilla_d_net(generated_images) * -1.0).mean()
-            else:
-                d_loss_real = (vanilla_d_net(real_images) - 1).pow(2).mean()
-                d_loss_fake = (vanilla_d_net(generated_images)).pow(2).mean()
-            d_loss = .5 * (d_loss_fake + d_loss_real)
-            d_loss.backward()
-            vanilla_d_optimizer.step()
-            end = time.time()
-            #print('D_Time:', end - start)
+                # Step 2. Make one generator step
+                start = time.time()
+                generated_images = vanilla_g_net(sampled_noise)
+                if config.use_wgan_loss:
+                    g_loss_fake = (vanilla_d_net(generated_images) * 1.0).mean()
+                else:
+                    g_loss_fake = (vanilla_d_net(generated_images) - 1).pow(2).mean()
+                g_loss = g_loss_fake
+                g_loss.backward()
+                vanilla_g_optimizer.step()
+                end = time.time()
 
-            # TESTING: Vanilla Video Gan
-            video_d_loss_real = (video_d_net(clips_y) - 1).pow(2).mean()
-            video_d_loss_fake = (video_d_net(video_images)).pow(2).mean()
-            video_d_loss = .5 * (video_d_loss_real + video_d_loss_fake)
-            video_d_loss.backward()
-            video_d_optimizer.step()
 
-            # batch_size x noise_size x 1 x 1
-            batch_size = 16
-            noise_size = 100
-            sampled_noise = sample_noise(batch_size, noise_size)
+            if VIDEO_GAN:
+                video_images = video_g_net(clips_x)
+                # TESTING: Vanilla Video Gan
+                video_d_loss_real = (video_d_net(clips_y) - 1).pow(2).mean()
+                video_d_loss_fake = (video_d_net(video_images)).pow(2).mean()
+                video_d_loss = .5 * (video_d_loss_real + video_d_loss_fake)
+                video_d_loss.backward()
+                video_d_optimizer.step()
 
-            # Step 2. Make one generator step
-            start = time.time()
-            generated_images = vanilla_g_net(sampled_noise)
-            if config.use_wgan_loss:
-                g_loss_fake = (vanilla_d_net(generated_images) * 1.0).mean()
-            else:
-                g_loss_fake = (vanilla_d_net(generated_images) - 1).pow(2).mean()
-            g_loss = g_loss_fake
-            g_loss.backward()
-            vanilla_g_optimizer.step()
-            end = time.time()
-            #print('G_Time:', end - start)
+                # batch_size x noise_size x 1 x 1
+                batch_size = 16
+                noise_size = 100
+                sampled_noise = sample_noise(batch_size, noise_size)
 
-            # TESTING: Vanilla Video Gan
-            video_images = video_g_net(clips_x)
-            video_g_loss_fake = (video_d_net(video_images) - 1).pow(2).mean()
-            video_g_loss = video_g_loss_fake
-            video_g_loss.backward()
-            video_g_optimizer.step()
+                #print('G_Time:', end - start)
+
+                # TESTING: Vanilla Video Gan
+                video_images = video_g_net(clips_x)
+                video_g_loss_fake = (video_d_net(video_images) - 1).pow(2).mean()
+                video_g_loss = video_g_loss_fake
+                video_g_loss.backward()
+                video_g_optimizer.step()
 
             if count % 100 == 0:
                 print('d_loss_real:', d_loss_real)
@@ -219,9 +228,10 @@ def main():
                 save_samples(video_images, count, "video_fake")
             count += 1
 
-            # Record loss values
-            vanilla_d_losses.append(d_loss)
-            vanilla_g_losses.append(g_loss)
+            if VANILLA_GAN:
+                # Record loss values
+                vanilla_d_losses.append(d_loss)
+                vanilla_g_losses.append(g_loss)
 
     matplotlib.pyplot.plot(vanilla_d_losses)
     matplotlib.pyplot.plot(vanilla_g_losses)
