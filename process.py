@@ -91,9 +91,6 @@ def main():
             [1024, 512, 1],
             [1024, 512, 1]]
 
-    # D = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
-    #         conv_layer_fms_list=SCALE_CONV_FSM_D,
-    #         scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
 
     # G = g_net.GeneratorDefinitions()
     # g_optimizer = optim.Adam(G.parameters(), lr=0.001)
@@ -117,13 +114,23 @@ def main():
         print('#G parameters:', g_num_params)
 
     if VIDEO_GAN:
-        video_d_net = vanilla_gan.video_gan.Discriminator()
-        video_g_net = vanilla_gan.video_gan.Generator()
-        video_d_net.type(dtype)
-        video_g_net.type(dtype)
+        if True:
+            video_d_net = vanilla_gan.video_gan.Discriminator()
+            video_d_net.type(dtype)
+
+            video_g_net = vanilla_gan.video_gan.Generator()
+            video_g_net.type(dtype)
+        else:
+            video_d_net = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
+                conv_layer_fms_list=SCALE_CONV_FSM_D,
+                scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
+            video_d_net.type(dtype)
+
+            video_g_net = vanilla_gan.video_gan.Generator()
+            video_g_net.type(dtype)
+
         video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
         video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
-
 
     # Load Pacman dataset
     pacman_dataloader = data_loader.DataLoader('train', 500, 16, 32, 32, 4)
@@ -218,7 +225,7 @@ def main():
                 video_g_loss.backward()
                 video_g_optimizer.step()
 
-            if count % 100 == 0:
+            if count % 20 == 0:
                 if VANILLA_GAN:
                     print('d_loss_real:', d_loss_real)
                     print('d_loss_fake:', d_loss_fake)
