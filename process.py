@@ -238,6 +238,10 @@ def main():
     plt.savefig('plot.jpg')
     plt.show()
 
+    # Final Generator save.
+    torch.save(G.state_dict(), "generator_net.pth")
+
+
 
 if __name__ == '__main__':
     main()
