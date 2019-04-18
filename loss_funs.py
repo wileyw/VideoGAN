@@ -42,7 +42,8 @@ def lp_loss(gen_frames, gt_frames, l_num):
     if l_num == 1:
         return nn.L1Loss(gen_frames, gt_frames)
     elif l_num == 2:
-        return nn.MSELoss(gen_frames, gt_frames)
+        loss = nn.MSELoss()
+        return loss(gen_frames, gt_frames)
     else:
         print("Not supported!")
         exit()

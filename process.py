@@ -239,7 +239,7 @@ def main():
                 d_preds = video_d_net(video_images) # TODO: Make sure this is working.
                 gt_frames = clips_y # TODO: make clips_y at different scales.
                 gen_frames = video_images # TODO: make the generated frames multi scale.
-                video_g_loss = loss_funcs.combined_loss(gen_frames, gt_frames, d_preds)
+                video_g_loss = loss_funs.combined_loss(gen_frames, gt_frames, d_preds)
                 video_g_loss.backward()
                 video_g_optimizer.step()
 
