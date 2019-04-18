@@ -33,15 +33,37 @@ def reconstruct_frame(result, fw, fh, cw, ch):
                 :] = result[i * (fh/ch) + j]
 
 
+def save_to_video(frames, video_filename):
+    video = cv2.VideoWriter(video_filename)
+    for frame in frames:
+        video.write(frame)
+    video.release()
+
+
 def main():
+    parser = argparse.ArgumentParser(
+        description="""
+            Script to run inference on a random input seeding
+            of videoGAN
+        """)
+    parser.add_argument(
+        'video_filename',
+        help='output filename of video')
+    parser.add_argument(
+        '-i', '--input_dir',
+        default='Ms_Pacman/Test',
+        help='input dir of training to take random images from')
+
+
+    args = parser.parse_args()
+
     # Load generator.
     generator = g_net.GeneratorDefinitions()
     generator.load_state_dict(torch.load(MODEL_FILEPATH))
     generator.eval()
 
     # Load input seed.
-    # TODO: implement frame load seed
-    frames = [None, None, None]
+    frames = data_util.get_full_clips()[:HIST_LEN]
     frame_w, frame_h = frames[0].shape
 
     # Set initial frames.
@@ -61,8 +83,7 @@ def main():
         input_batched.pop(0)
         input_batched.append(result)
 
-    # TODO: save frames into video.
-
+    save_to_video(frames, args.video_filename)
 
 if __name__ == '__main__':
     main()
