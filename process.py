@@ -114,6 +114,7 @@ def main():
         print('#G parameters:', g_num_params)
 
     if VIDEO_GAN:
+        # TODO: Remove logic.
         if False:
             video_d_net = vanilla_gan.video_gan.Discriminator()
             video_d_net.type(dtype)
@@ -238,7 +239,7 @@ def main():
                 d_preds = video_d_net(video_images) # TODO: Make sure this is working.
                 gt_frames = clips_y # TODO: make clips_y at different scales.
                 gen_frames = video_images # TODO: make the generated frames multi scale.
-                video_g_loss = combined_loss(gen_frames, gt_frames, d_preds)
+                video_g_loss = loss_funcs.combined_loss(gen_frames, gt_frames, d_preds)
                 video_g_loss.backward()
                 video_g_optimizer.step()
 

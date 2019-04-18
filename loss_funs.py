@@ -24,7 +24,8 @@ def combined_loss(gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1
 
     loss = lam_lp * lp_loss(gen_frames, gt_frames, l_num)
     loss += lam_gdl * gdl_loss(gen_frames, gt_frames, alpha)
-    if c.ADVERSARIAL: loss += lam_adv * adv_loss(d_preds, torch.ones([batch_size, 1]))
+    # if c.ADVERSARIAL: loss += lam_adv * adv_loss(d_preds, torch.ones([batch_size, 1]))
+    loss += lam_adv * adv_loss(d_preds, torch.ones([batch_size, 4]))
 
     return loss
 
