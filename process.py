@@ -206,11 +206,24 @@ def main():
                 # TESTING: Vanilla Video Gan
                 video_d_loss_real = (video_d_net(clips_y) - 1).pow(2).mean()
                 video_d_loss_fake = (video_d_net(video_images)).pow(2).mean()
-                video_d_loss = .5 * (video_d_loss_real + video_d_loss_fake)
-                lables = 0  # TODO, is it right?
-                video_d_loss = loss_funs.adv_loss(video_d_net(video_images), lables) # TODO: Validate if it's right.
-                video_d_loss.backward()
+
+                # Fake batch
+                labels = torch.zeros(batch_size, 4)
+                video_d_loss_fake = loss_funs.adv_loss(video_d_net(video_images), labels) # TODO: Validate if it's right.
+                video_d_optimizer.zero_grad()
+                video_d_loss_fake.backward()
                 video_d_optimizer.step()
+
+                # Real batch
+                labels = torch.ones(batch_size, 4)
+                video_d_loss_real = loss_funs.adv_loss(video_d_net(clips_y), labels) # TODO: Validate if it's right.
+                video_d_optimizer.zero_grad()
+                video_d_loss_fake.backward()
+                video_d_optimizer.step()
+
+                #video_d_loss.backward()
+                #video_d_optimizer.step()
+                # video_d_loss_real.backward()
 
                 # batch_size x noise_size x 1 x 1
                 batch_size = 16
