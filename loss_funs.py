@@ -90,5 +90,5 @@ def adv_loss(preds, labels):
     @return: The adversarial loss.
     """
     # calculate the loss for each scale
-    loss = nn.BCE_loss(size_average=True)
+    loss = nn.BCELoss(size_average=True)
     return loss(preds, labels)

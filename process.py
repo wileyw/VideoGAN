@@ -114,7 +114,7 @@ def main():
         print('#G parameters:', g_num_params)
 
     if VIDEO_GAN:
-        if True:
+        if False:
             video_d_net = vanilla_gan.video_gan.Discriminator()
             video_d_net.type(dtype)
 
@@ -218,7 +218,7 @@ def main():
                 labels = torch.ones(batch_size, 4)
                 video_d_loss_real = loss_funs.adv_loss(video_d_net(clips_y), labels) # TODO: Validate if it's right.
                 video_d_optimizer.zero_grad()
-                video_d_loss_fake.backward()
+                video_d_loss_real.backward()
                 video_d_optimizer.step()
 
                 #video_d_loss.backward()
