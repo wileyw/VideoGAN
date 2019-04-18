@@ -192,7 +192,9 @@ def main():
                 if config.use_wgan_loss:
                     g_loss_fake = (vanilla_d_net(generated_images) * 1.0).mean()
                 else:
-                    g_loss_fake = (vanilla_d_net(generated_images) - 1).pow(2).mean()
+                    # In GAN papers, the loss function to optimize G is min (log 1-D), but in practice folks practically use max log D
+                    #g_loss_fake = (vanilla_d_net(generated_images) - 1).pow(2).mean()
+                    g_loss_fake = -torch.log((vanilla_d_net(generated_images)).pow(2).mean())
                 g_loss = g_loss_fake
                 g_loss.backward()
                 vanilla_g_optimizer.step()
