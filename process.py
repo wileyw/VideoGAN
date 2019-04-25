@@ -209,14 +209,14 @@ def main():
                 video_d_loss_fake = (video_d_net(video_images)).pow(2).mean()
 
                 # Fake batch
-                labels = torch.zeros(batch_size, 4)
+                labels = torch.zeros(batch_size, 4).t().unsqueeze(2)
                 video_d_loss_fake = loss_funs.adv_loss(video_d_net(video_images), labels) # TODO: Validate if it's right.
                 video_d_optimizer.zero_grad()
                 video_d_loss_fake.backward()
                 video_d_optimizer.step()
 
                 # Real batch
-                labels = torch.ones(batch_size, 4)
+                labels = torch.ones(batch_size, 4).t().unsqueeze(2)
                 video_d_loss_real = loss_funs.adv_loss(video_d_net(clips_y), labels) # TODO: Validate if it's right.
                 video_d_optimizer.zero_grad()
                 video_d_loss_real.backward()
