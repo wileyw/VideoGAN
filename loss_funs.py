@@ -40,7 +40,8 @@ def lp_loss(gen_frames, gt_frames, l_num):
     """
     # calculate the loss for each scale
     if l_num == 1:
-        return nn.L1Loss(gen_frames, gt_frames)
+        loss = nn.L1Loss()
+        return loss(gen_frames, gt_frames)
     elif l_num == 2:
         loss = nn.MSELoss()
         return loss(gen_frames, gt_frames)
