@@ -22,7 +22,7 @@ def combined_loss(gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1
     """
 
     # TODO: get the batch size in pytorch
-    # batch_size = tf.shape(gen_frames[0])[0]  # variable batch size as a tensor
+    batch_size = gen_frames.shape[0]
 
     loss = lam_lp * lp_loss(gen_frames, gt_frames, l_num)
     loss += lam_gdl * gdl_loss(gen_frames, gt_frames, alpha)
@@ -61,17 +61,17 @@ def gdl_loss(gen_frames, gt_frames, alpha):
     @return: The GDL loss.
     """
     filter_x_values = np.array(
-        [[[[-1, 1]], [[0, 0]], [[0, 0]]],
-        [[[0, 0]], [[-1, 1]], [[0, 0]]],
-        [[[0, 0]], [[0, 0]], [[-1, 1]]]], dtype=np.float32)
-    filter_x = nn.Conv2d(3, 3, (1, 2))
+        [[[[-1, 1, 0]], [[0, 0, 0]], [[0, 0, 0]]],
+        [[[0, 0, 0]], [[-1, 1, 0]], [[0, 0, 0]]],
+        [[[0, 0, 0]], [[0, 0, 0]], [[-1, 1, 0]]]], dtype=np.float32)
+    filter_x = nn.Conv2d(3, 3, (1, 3), padding=(0, 1))
     filter_x.weight = nn.Parameter(torch.from_numpy(filter_x_values))
 
     filter_y_values = np.array(
-        [[[[-1], [1]], [[0], [0]], [[0], [0]]],
-        [[[0], [0]], [[-1], [1]], [[0], [0]]],
-        [[[0], [0]], [[0], [0]], [[-1], [1]]]], dtype=np.float32)
-    filter_y = nn.Conv2d(3, 3, (2, 1))
+        [[[[-1], [1], [0]], [[0], [0], [0]], [[0], [0], [0]]],
+        [[[0], [0], [0]], [[-1], [1], [0]], [[0], [0], [0]]],
+        [[[0], [0], [0]], [[0], [0], [0]], [[-1], [1], [0]]]], dtype=np.float32)
+    filter_y = nn.Conv2d(3, 3, (3, 1), padding=(1, 0))
     filter_y.weight = nn.Parameter(torch.from_numpy(filter_y_values))
 
     gen_dx = filter_x(gen_frames)
@@ -82,7 +82,7 @@ def gdl_loss(gen_frames, gt_frames, alpha):
     grad_diff_x = torch.pow(torch.abs(gt_dx - gen_dx), alpha)
     grad_diff_y = torch.pow(torch.abs(gt_dy - gen_dy), alpha)
 
-    grad_total = torch.stack(grad_diff_x, grad_diff_y)
+    grad_total = torch.stack([grad_diff_x, grad_diff_y])
 
     return torch.mean(grad_total)
 
