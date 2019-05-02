@@ -260,7 +260,7 @@ def main():
                     save_samples(video_images, count, "video_fake")
 
                 loss_fp.write('{},{},{},{}'.format(count, d_loss_real, d_loss_fake, g_loss))
-                torch.save(G.state_dict(), "generator_net.pth.tmp")"
+                torch.save(G.state_dict(), "generator_net.pth.tmp")
             count += 1
 
             if VANILLA_GAN:
