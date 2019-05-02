@@ -91,7 +91,7 @@ def main():
             [1024, 512, 1],
             [1024, 512, 1]]
 
-
+    loss_fp = open('losses.csv', 'w')
     # G = g_net.GeneratorDefinitions()
     # g_optimizer = optim.Adam(G.parameters(), lr=0.001)
     # d_optimizer = optim.Adam(D.parameters(), lr=0.001)
@@ -258,7 +258,9 @@ def main():
                 if VIDEO_GAN:
                     save_samples(clips_y, count, "video_real")
                     save_samples(video_images, count, "video_fake")
-            torch.save(G.state_dict(), "generator_net.pth.tmp")"
+
+                loss_fp.write('{},{},{},{}'.format(count, d_loss_real, d_loss_fake, g_loss))
+                torch.save(G.state_dict(), "generator_net.pth.tmp")"
             count += 1
 
             if VANILLA_GAN:
@@ -270,6 +272,7 @@ def main():
     matplotlib.pyplot.plot(vanilla_g_losses)
     plt.savefig('plot.jpg')
     plt.show()
+    loss_fp.close()
 
     # Final Generator save.
     torch.save(G.state_dict(), "generator_net.pth")
