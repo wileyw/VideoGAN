@@ -258,6 +258,7 @@ def main():
                 if VIDEO_GAN:
                     save_samples(clips_y, count, "video_real")
                     save_samples(video_images, count, "video_fake")
+            torch.save(G.state_dict(), "generator_net.pth.tmp")"
             count += 1
 
             if VANILLA_GAN:
