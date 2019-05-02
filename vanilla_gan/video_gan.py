@@ -112,3 +112,47 @@ class Generator(nn.Module):
         out = torch.tanh(out)
 
         return out
+
+class VideoGANGenerator(nn.Module):
+    """This class implements the full VideoGAN Generator Network.
+    Currently a placeholder that copies the Vanilla GAN Generator network
+    """
+    def __init__(self):
+        super(VideoGANGenerator, self).__init__()
+
+        self.deconv1 = nn.ConvTranspose2d(12, 128, 3, stride=1, padding=1).type(dtype)
+        nn.init.xavier_normal(self.deconv1.weight)
+        self.bn1 = nn.BatchNorm2d(128).type(dtype)
+
+        self.deconv2 = nn.ConvTranspose2d(128, 64, 3, stride=1, padding=1).type(dtype)
+        nn.init.xavier_normal(self.deconv2.weight)
+        self.bn2 = nn.BatchNorm2d(64).type(dtype)
+
+        self.deconv3 = nn.ConvTranspose2d(64, 32, 3, stride=1, padding=1).type(dtype)
+        nn.init.xavier_normal(self.deconv3.weight)
+        self.bn3 = nn.BatchNorm2d(32).type(dtype)
+
+        self.deconv4 = nn.ConvTranspose2d(32, 3, 3, stride=1, padding=1).type(dtype)
+        nn.init.xavier_normal(self.deconv4.weight)
+
+    def forward(self, x):
+        out = self.deconv1(x).type(dtype)
+        # TODO: Investigate putting Batch Norm before versus after the RELU layer
+        # Resources:
+        # https://www.reddit.com/r/MachineLearning/comments/67gonq/d_batch_normalization_before_or_after_relu/
+        # https://www.youtube.com/watch?v=Xogn6veSyxA&feature=youtu.be&t=325
+        out = self.bn1(out)
+        out = F.relu(out)
+
+        out = self.deconv2(out)
+        out = self.bn2(out)
+        out = F.relu(out)
+
+        out = self.deconv3(out)
+        out = self.bn3(out)
+        out = F.relu(out)
+
+        out = self.deconv4(out)
+        out = torch.tanh(out)
+
+        return out

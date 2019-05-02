@@ -127,7 +127,7 @@ def main():
                 scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
             video_d_net.type(dtype)
 
-            video_g_net = vanilla_gan.video_gan.Generator()
+            video_g_net = vanilla_gan.video_gan.VideoGANGenerator()
             video_g_net.type(dtype)
 
         video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
