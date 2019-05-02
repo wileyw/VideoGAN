@@ -259,7 +259,7 @@ def main():
                     save_samples(clips_y, count, "video_real")
                     save_samples(video_images, count, "video_fake")
 
-                loss_fp.write('{},{},{},{}'.format(count, d_loss_real, d_loss_fake, g_loss))
+                    loss_fp.write('{},{},{},{}'.format(count, video_d_loss_real, video_d_loss_fake, video_g_loss))
                 torch.save(G.state_dict(), "generator_net.pth.tmp")
             count += 1
 
