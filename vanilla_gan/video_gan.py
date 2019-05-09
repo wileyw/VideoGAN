@@ -120,19 +120,19 @@ class VideoGANGenerator(nn.Module):
     def __init__(self):
         super(VideoGANGenerator, self).__init__()
 
-        self.deconv1 = nn.ConvTranspose2d(12, 128, 3, stride=1, padding=1).type(dtype)
+        self.deconv1 = nn.Conv2d(12, 128, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv1.weight)
         self.bn1 = nn.BatchNorm2d(128).type(dtype)
 
-        self.deconv2 = nn.ConvTranspose2d(128, 64, 3, stride=1, padding=1).type(dtype)
+        self.deconv2 = nn.Conv2d(128, 256, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv2.weight)
-        self.bn2 = nn.BatchNorm2d(64).type(dtype)
+        self.bn2 = nn.BatchNorm2d(256).type(dtype)
 
-        self.deconv3 = nn.ConvTranspose2d(64, 32, 3, stride=1, padding=1).type(dtype)
+        self.deconv3 = nn.ConvTranspose2d(256, 128, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv3.weight)
-        self.bn3 = nn.BatchNorm2d(32).type(dtype)
+        self.bn3 = nn.BatchNorm2d(128).type(dtype)
 
-        self.deconv4 = nn.ConvTranspose2d(32, 3, 3, stride=1, padding=1).type(dtype)
+        self.deconv4 = nn.ConvTranspose2d(128, 3, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv4.weight)
 
     def forward(self, x):
