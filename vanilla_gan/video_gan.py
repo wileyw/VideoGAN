@@ -113,13 +113,12 @@ class Generator(nn.Module):
 
         return out
 
-class VideoGANGenerator(nn.Module):
-    """This class implements the full VideoGAN Generator Network.
-    Currently a placeholder that copies the Vanilla GAN Generator network
-    """
+class Gen1(nn.Module):
     def __init__(self):
-        super(VideoGANGenerator, self).__init__()
+        super(Gen1, self).__init__()
 
+        # Generator #1
+        self.g1 = nn.ModuleList()
         self.deconv1 = nn.Conv2d(12, 128, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv1.weight)
         self.bn1 = nn.BatchNorm2d(128).type(dtype)
@@ -135,24 +134,90 @@ class VideoGANGenerator(nn.Module):
         self.deconv4 = nn.ConvTranspose2d(128, 3, 3, stride=1, padding=1).type(dtype)
         nn.init.xavier_normal(self.deconv4.weight)
 
+        self.g1.append(self.deconv1)
+        self.g1.append(self.bn1)
+        self.g1.append(nn.ReLU())
+        self.g1.append(self.deconv2)
+        self.g1.append(self.bn2)
+        self.g1.append(nn.ReLU())
+        self.g1.append(self.deconv3)
+        self.g1.append(self.bn3)
+        self.g1.append(nn.ReLU())
+        self.g1.append(self.deconv4)
+
     def forward(self, x):
-        out = self.deconv1(x).type(dtype)
-        # TODO: Investigate putting Batch Norm before versus after the RELU layer
-        # Resources:
-        # https://www.reddit.com/r/MachineLearning/comments/67gonq/d_batch_normalization_before_or_after_relu/
-        # https://www.youtube.com/watch?v=Xogn6veSyxA&feature=youtu.be&t=325
-        out = self.bn1(out)
-        out = F.relu(out)
+        out = x.type(dtype)
+        for layer in self.g1:
+            out = layer(out)
+        return out
 
-        out = self.deconv2(out)
-        out = self.bn2(out)
-        out = F.relu(out)
+class Gen2(nn.Module):
+    def __init__(self):
+        super(Gen2, self).__init__()
 
-        out = self.deconv3(out)
-        out = self.bn3(out)
-        out = F.relu(out)
+        # Generator #2
+        self.g1 = nn.ModuleList()
+        self.deconv1 = nn.Conv2d(15, 128, 5, stride=1, padding=2).type(dtype)
+        nn.init.xavier_normal(self.deconv1.weight)
+        self.bn1 = nn.BatchNorm2d(128).type(dtype)
 
-        out = self.deconv4(out)
+        self.deconv2 = nn.Conv2d(128, 256, 3, stride=1, padding=1).type(dtype)
+        nn.init.xavier_normal(self.deconv2.weight)
+        self.bn2 = nn.BatchNorm2d(256).type(dtype)
+
+        self.deconv3 = nn.ConvTranspose2d(256, 128, 3, stride=1, padding=1).type(dtype)
+        nn.init.xavier_normal(self.deconv3.weight)
+        self.bn3 = nn.BatchNorm2d(128).type(dtype)
+
+        self.deconv4 = nn.ConvTranspose2d(128, 3, 5, stride=1, padding=2).type(dtype)
+        nn.init.xavier_normal(self.deconv4.weight)
+
+        self.g1.append(self.deconv1)
+        self.g1.append(self.bn1)
+        self.g1.append(nn.ReLU())
+        self.g1.append(self.deconv2)
+        self.g1.append(self.bn2)
+        self.g1.append(nn.ReLU())
+        self.g1.append(self.deconv3)
+        self.g1.append(self.bn3)
+        self.g1.append(nn.ReLU())
+        self.g1.append(self.deconv4)
+
+    def forward(self, x):
+        out = x.type(dtype)
+        for layer in self.g1:
+            out = layer(out)
+        return out
+
+class VideoGANGenerator(nn.Module):
+    """This class implements the full VideoGAN Generator Network.
+    Currently a placeholder that copies the Vanilla GAN Generator network
+    """
+    def __init__(self):
+        super(VideoGANGenerator, self).__init__()
+
+        self.up1 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1)
+        self.up2 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1)
+        self.up3 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1)
+
+        # Generator #1
+        self.g1 = Gen1()
+        self.g2 = Gen2()
+
+    def forward(self, x):
+        out = x.type(dtype)
+
+        # TODO: Change the image size
+        img1 = F.interpolate(out, size=(16, 16))
+        img2 = F.interpolate(out, size=(32, 32))
+        img3 = F.interpolate(out, size=(16, 16))
+        img4 = out
+
+        out = self.g1(img1)
+        upsample1 = self.up1(out)
+        out = upsample1 + self.g2(torch.cat([img2, upsample1], dim=1))
+
+        # Apply tanh at the end
         out = torch.tanh(out)
 
         return out
