@@ -196,9 +196,9 @@ class VideoGANGenerator(nn.Module):
     def __init__(self):
         super(VideoGANGenerator, self).__init__()
 
-        self.up1 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1)
-        self.up2 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1)
-        self.up3 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1)
+        self.up1 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1).type(dtype)
+        self.up2 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1).type(dtype)
+        self.up3 = nn.ConvTranspose2d(3, 3, 3, stride=2, padding=1, output_padding=1).type(dtype)
 
         # Generator #1
         self.g1 = Gen1()
