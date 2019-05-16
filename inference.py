@@ -5,7 +5,7 @@ import torch
 import numpy as np
 
 import data_util
-import g_net
+from vanilla_gan.video_gan import VideoGANGenerator
 
 
 MODEL_FILEPATH = 'generator_net.pth'
@@ -58,8 +58,10 @@ def main():
     args = parser.parse_args()
 
     # Load generator.
-    generator = g_net.GeneratorDefinitions()
+    generator = VideoGANGenerator()
+    print("blablabla")
     generator.load_state_dict(torch.load(MODEL_FILEPATH))
+    print("BLABLABLA")
     generator.eval()
 
     # Load input seed.
