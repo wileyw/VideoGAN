@@ -59,13 +59,11 @@ def main():
 
     # Load generator.
     generator = VideoGANGenerator()
-    print("blablabla")
     generator.load_state_dict(torch.load(MODEL_FILEPATH))
-    print("BLABLABLA")
     generator.eval()
 
     # Load input seed.
-    frames = data_util.get_full_clips()[:HIST_LEN]
+    frames = data_util.get_full_clips(args.input_dir, HIST_LEN, 1)
     frame_w, frame_h = frames[0].shape
 
     # Set initial frames.
