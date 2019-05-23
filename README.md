@@ -28,6 +28,12 @@ cp -r a4-code-v2-updated/emojis emojis
 python3 process.py
 ```
 
+# Instructions to generate the entire Pacman board
+```
+cp generator_net.pth.tmp generator_net.pth
+python inference.py output_example_video.mp4
+```
+
 # Tips and tricks to train GANs
 https://github.com/soumith/ganhacks
 
