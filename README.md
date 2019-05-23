@@ -18,7 +18,7 @@ The VideoGAN training data requires preprocessing. To generate the VideoGAN data
 3. Run the following commands in `VideoGAN`
 ```
 mkdir train
-python process_data.py Ms_Pacman/Train train
+python process_data.py Ms_Pacman/Train train --num_clips=5000
 ```
 
 # Instructions to run Vanilla GAN
