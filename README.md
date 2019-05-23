@@ -44,3 +44,4 @@ Similarity Index Measure (SSIM), [Inception Distance](https://nealjean.com/ml/fr
 3. Change loss function to use log() function
 4. Write blog post
 5. Change code to run on GPU
+6. Train on more than 500 training images
