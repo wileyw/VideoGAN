@@ -134,7 +134,7 @@ def main():
         video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
 
     # Load Pacman dataset
-    pacman_dataloader = data_loader.DataLoader('train', 5000, 16, 32, 32, 4)
+    pacman_dataloader = data_loader.DataLoader('train', 500000, 16, 32, 32, 4)
 
     # Load emojis
     train_dataloader, _ = get_emoji_loader('Windows')
