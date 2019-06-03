@@ -89,8 +89,8 @@ def main():
     generator.eval()
 
     # Load input seed.
-    frames = data_util.get_full_clips(args.input_dir, HIST_LEN-1, 1)[0, :, :, :]
-    frame_w, frame_h = frames.shape[:2]
+    frames = data_util.get_full_clips(args.input_dir, HIST_LEN, 1)
+    frame_w, frame_h = frames[0].shape
 
     # Set initial frames.
     input_frames = data_util.denormalize_frames(frames)

@@ -18,7 +18,7 @@ The VideoGAN training data requires preprocessing. To generate the VideoGAN data
 3. Run the following commands in `VideoGAN`
 ```
 mkdir train
-python process_data.py Ms_Pacman/Train train
+python process_data.py Ms_Pacman/Train train --num_clips=5000
 ```
 
 # Instructions to run Vanilla GAN
@@ -26,6 +26,12 @@ python process_data.py Ms_Pacman/Train train
 bash vanilla_gan/download_dataset.sh
 cp -r a4-code-v2-updated/emojis emojis
 python3 process.py
+```
+
+# Instructions to generate the entire Pacman board
+```
+cp generator_net.pth.tmp generator_net.pth
+python inference.py output_example_video.mp4
 ```
 
 # Tips and tricks to train GANs
@@ -37,3 +43,5 @@ https://github.com/soumith/ganhacks
 Similarity Index Measure (SSIM), [Inception Distance](https://nealjean.com/ml/frechet-inception-distance/)
 3. Change loss function to use log() function
 4. Write blog post
+5. (Mike) Change code to run on GPU
+6. Train on more than 500 training images
