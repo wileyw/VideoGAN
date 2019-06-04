@@ -25,6 +25,8 @@ import loss_funs
 
 dtype = config.dtype
 
+device = config.device
+
 VIDEO_GAN = True
 VANILLA_GAN = not VIDEO_GAN
 
