@@ -34,6 +34,9 @@ cp generator_net.pth.tmp generator_net.pth
 python inference.py output_example_video.mp4
 ```
 
+# Instructions to test a saved model. It loads `generator_net.pth.tmp`
+```python test_model.py```
+
 # Tips and tricks to train GANs
 https://github.com/soumith/ganhacks
 
