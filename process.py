@@ -206,14 +206,14 @@ def main():
                 video_d_loss_fake = (video_d_net(video_images)).pow(2).mean()
 
                 # Fake batch
-                labels = torch.zeros(batch_size, 4).t().unsqueeze(2)
+                labels = torch.zeros(batch_size, 4).t().unsqueeze(2).type(dtype)
                 video_d_loss_fake = loss_funs.adv_loss(video_d_net(video_images), labels) # TODO: Validate if it's right.
                 video_d_optimizer.zero_grad()
                 video_d_loss_fake.backward()
                 video_d_optimizer.step()
 
                 # Real batch
-                labels = torch.ones(batch_size, 4).t().unsqueeze(2)
+                labels = torch.ones(batch_size, 4).t().unsqueeze(2).type(dtype)
                 video_d_loss_real = loss_funs.adv_loss(video_d_net(clips_y), labels) # TODO: Validate if it's right.
                 video_d_optimizer.zero_grad()
                 video_d_loss_real.backward()
@@ -233,9 +233,9 @@ def main():
                 # TESTING: Vanilla Video Gan
                 video_images = video_g_net(clips_x)                
                 video_g_loss_fake = (video_d_net(video_images) - 1).pow(2).mean()
-                d_preds = video_d_net(video_images) # TODO: Make sure this is working.
-                gt_frames = clips_y # TODO: make clips_y at different scales.
-                gen_frames = video_images # TODO: make the generated frames multi scale.
+                d_preds = video_d_net(video_images).type(dtype) # TODO: Make sure this is working.
+                gt_frames = clips_y.type(dtype) # TODO: make clips_y at different scales.
+                gen_frames = video_images.type(dtype) # TODO: make the generated frames multi scale.
                 video_g_loss = loss_funs.combined_loss(gen_frames, gt_frames, d_preds)
                 video_g_loss.backward()
                 video_g_optimizer.step()
