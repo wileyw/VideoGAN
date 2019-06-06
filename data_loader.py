@@ -36,10 +36,12 @@ class DataLoader:
                             3],
                             dtype=np.float32)
         for i in range(self.batch_size):
-            path = os.path.join(
-                self.train_dir_clips,
-                str(np.random.choice(self.num_clips)) +
-                '.npz')
+            path = None
+            while path == None or os.path.exists(path) == False:
+                path = os.path.join(
+                    self.train_dir_clips,
+                    str(np.random.choice(self.num_clips)) +
+                    '.npz')
             clip = np.load(path)['arr_0']
 
             clips_x[i] = clip[:, :, :3 * self.hist_len]

@@ -4,6 +4,10 @@ import torch.nn.functional as F
 
 import numpy as np
 
+import config
+
+dtype = config.dtype
+
 
 def combined_loss(gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1, l_num=2, alpha=2):
     """
@@ -27,7 +31,7 @@ def combined_loss(gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1
     loss = lam_lp * lp_loss(gen_frames, gt_frames, l_num)
     loss += lam_gdl * gdl_loss(gen_frames, gt_frames, alpha)
     # if c.ADVERSARIAL: loss += lam_adv * adv_loss(d_preds, torch.ones([batch_size, 1]))
-    loss += lam_adv * adv_loss(d_preds, torch.ones([batch_size, 4]))
+    loss += lam_adv * adv_loss(d_preds, torch.ones([batch_size, 4]).type(dtype))
 
     return loss
 
@@ -73,6 +77,9 @@ def gdl_loss(gen_frames, gt_frames, alpha):
         [[[0], [0], [0]], [[0], [0], [0]], [[-1], [1], [0]]]], dtype=np.float32)
     filter_y = nn.Conv2d(3, 3, (3, 1), padding=(1, 0))
     filter_y.weight = nn.Parameter(torch.from_numpy(filter_y_values))
+
+    filter_x = filter_x.type(dtype)
+    filter_y = filter_y.type(dtype)
 
     gen_dx = filter_x(gen_frames)
     gen_dy = filter_y(gen_frames)
