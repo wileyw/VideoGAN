@@ -24,8 +24,6 @@ import loss_funs
 
 dtype = config.dtype
 
-device = config.device
-
 VIDEO_GAN = True
 VANILLA_GAN = not VIDEO_GAN
 
@@ -101,8 +99,8 @@ def main():
         vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
         #vanilla_g_net = vanilla_gan.vanilla_gan.GeneratorSkipConnections()
         vanilla_g_net = vanilla_gan.vanilla_gan.Generator()
-        vanilla_d_net.to(device)
-        vanilla_g_net.to(device)
+        vanilla_d_net.type(dtype)
+        vanilla_g_net.type(dtype)
         vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
         vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0001)
 
@@ -115,18 +113,18 @@ def main():
         # TODO: Remove logic.
         if False:
             video_d_net = vanilla_gan.video_gan.Discriminator()
-            video_d_net.to(device)
+            video_d_net.type(dtype)
 
             video_g_net = vanilla_gan.video_gan.Generator()
-            video_g_net.to(device)
+            video_g_net.type(dtype)
         else:
             video_d_net = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
                 conv_layer_fms_list=SCALE_CONV_FSM_D,
                 scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
-            video_d_net.to(device)
+            video_d_net.type(dtype)
 
             video_g_net = vanilla_gan.video_gan.VideoGANGenerator()
-            video_g_net.to(device)
+            video_g_net.type(dtype)
 
         video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
         video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
@@ -143,8 +141,8 @@ def main():
         for batch in train_dataloader:
             if VIDEO_GAN:
                 clips_x, clips_y = pacman_dataloader.get_train_batch()
-                clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1)).to(device)
-                clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1)).to(device)
+                clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1)).type(dtype)
+                clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1)).type(dtype)
 
 
             if VANILLA_GAN:
