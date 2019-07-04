@@ -46,5 +46,3 @@ https://github.com/soumith/ganhacks
 Similarity Index Measure (SSIM), [Inception Distance](https://nealjean.com/ml/frechet-inception-distance/)
 3. Change loss function to use log() function
 4. Write blog post
-5. (Mike) Change code to run on GPU
-6. Train on more than 500 training images
