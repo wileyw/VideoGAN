@@ -13,5 +13,8 @@ We initialize our Generator network with xavier initialization. One of the inter
 
 ## Loss Function
 
+## Future Steps
+As the number of history steps gets larger, stacking the different images becomes inefficient. As a future step, implementing 3D convolutions where a convolution operation is applied along the temporal dimension is a way to improve video generation.
+
 ## Resources
 https://arxiv.org/pdf/1511.05440.pdf
