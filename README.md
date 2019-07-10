@@ -45,7 +45,6 @@ https://github.com/soumith/ganhacks
 2. Evaluate predicted frames using Peak Signal to Noise Ratio (PSNR), Structural
 Similarity Index Measure (SSIM), [Inception Distance](https://nealjean.com/ml/frechet-inception-distance/)
 3. Change loss function to use log() function
-4. Write blog post
+4. Write blog post (Mike)
 5. Implement 3D Convolutions
 6. CVPR Notes
-7. Clean code (Mike)
