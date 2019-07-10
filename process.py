@@ -92,23 +92,6 @@ def main():
 
     loss_fp = open('losses.csv', 'w')
 
-    if VANILLA_GAN:
-        vanilla_d_losses = []
-        vanilla_g_losses = []
-
-        vanilla_d_net = vanilla_gan.vanilla_gan.Discriminator()
-        #vanilla_g_net = vanilla_gan.vanilla_gan.GeneratorSkipConnections()
-        vanilla_g_net = vanilla_gan.vanilla_gan.Generator()
-        vanilla_d_net.type(dtype)
-        vanilla_g_net.type(dtype)
-        vanilla_d_optimizer = optim.Adam(vanilla_d_net.parameters(), lr=0.0001)
-        vanilla_g_optimizer = optim.Adam(vanilla_g_net.parameters(), lr=0.0001)
-
-        d_num_params = sum(p.numel() for p in vanilla_d_net.parameters())
-        g_num_params = sum(p.numel() for p in vanilla_g_net.parameters())
-        print('#D parameters:', d_num_params)
-        print('#G parameters:', g_num_params)
-
     if VIDEO_GAN:
         # TODO: Remove logic.
         if False:
@@ -145,16 +128,6 @@ def main():
                 clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1)).type(dtype)
 
 
-            if VANILLA_GAN:
-                # Before implementing VideoGAN, I implemented a Vanilla GAN from
-                # http://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/assignments/a4-handout.pdf
-                # Next step is to implement VideoGAN
-                real_images, labels = batch
-                real_images = Variable(real_images)
-
-                vanilla_d_optimizer.zero_grad()
-                vanilla_g_optimizer.zero_grad()
-
             if VIDEO_GAN:
                 video_d_optimizer.zero_grad()
                 video_g_optimizer.zero_grad()
@@ -166,38 +139,6 @@ def main():
 
             # WGAN loss
             # https://github.com/keras-team/keras-contrib/blob/master/examples/improved_wgan.py
-
-            if VANILLA_GAN:
-                # Step 1. Make one discriminator step
-                start = time.time()
-                generated_images = vanilla_g_net(sampled_noise)
-
-                if config.use_wgan_loss:
-                    d_loss_real = (vanilla_d_net(real_images) * 1.0).mean()
-                    d_loss_fake = (vanilla_d_net(generated_images) * -1.0).mean()
-                else:
-                    d_loss_real = (vanilla_d_net(real_images) - 1).pow(2).mean()
-                    d_loss_fake = (vanilla_d_net(generated_images)).pow(2).mean()
-                d_loss = .5 * (d_loss_fake + d_loss_real)
-                d_loss.backward()
-                vanilla_d_optimizer.step()
-                end = time.time()
-                #print('D_Time:', end - start)
-
-                # Step 2. Make one generator step
-                start = time.time()
-                generated_images = vanilla_g_net(sampled_noise)
-                if config.use_wgan_loss:
-                    g_loss_fake = (vanilla_d_net(generated_images) * 1.0).mean()
-                else:
-                    # In GAN papers, the loss function to optimize G is min (log 1-D), but in practice folks practically use max log D
-                    #g_loss_fake = (vanilla_d_net(generated_images) - 1).pow(2).mean()
-                    g_loss_fake = -torch.log((vanilla_d_net(generated_images)).pow(2).mean())
-                g_loss = g_loss_fake
-                g_loss.backward()
-                vanilla_g_optimizer.step()
-                end = time.time()
-
 
             if VIDEO_GAN:
                 video_images = video_g_net(clips_x)
@@ -241,17 +182,6 @@ def main():
                 video_g_optimizer.step()
 
             if count % 20 == 0:
-                if VANILLA_GAN:
-                    print('d_loss_real:', d_loss_real)
-                    print('d_loss_fake:', d_loss_fake)
-                    print('g_loss:', g_loss)
-
-                    print('Mean')
-                    print(torch.mean(generated_images))
-
-                    save_samples(real_images, count, "real")
-                    save_samples(generated_images, count, "fake")
-
                 if VIDEO_GAN:
                     save_samples(clips_y, count, "video_real")
                     save_samples(video_images, count, "video_fake")
@@ -260,15 +190,6 @@ def main():
                 torch.save(video_g_net.state_dict(), "generator_net.pth.tmp")
             count += 1
 
-            if VANILLA_GAN:
-                # Record loss values
-                vanilla_d_losses.append(d_loss)
-                vanilla_g_losses.append(g_loss)
-
-    matplotlib.pyplot.plot(vanilla_d_losses)
-    matplotlib.pyplot.plot(vanilla_g_losses)
-    plt.savefig('plot.jpg')
-    plt.show()
     loss_fp.close()
 
     # Final Generator save.
