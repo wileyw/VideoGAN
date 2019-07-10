@@ -44,12 +44,6 @@ def save_samples(generated_images, iteration, prefix):
     scipy.misc.imsave('output/{}_{:05d}.jpg'.format(prefix, iteration), grid)
 
 
-def sample_noise(batch_size, dim):
-    result = torch.rand(batch_size, dim) * 2 - 1
-    result = Variable(result).unsqueeze(2).unsqueeze(3)
-
-    return result
-
 def get_emoji_loader(emoji_type):
     from torchvision import datasets
     from torchvision import transforms
@@ -124,7 +118,6 @@ def main():
             # batch_size x noise_size x 1 x 1
             batch_size = 16
             noise_size = 100
-            sampled_noise = sample_noise(batch_size, noise_size)
 
             # WGAN loss
             # https://github.com/keras-team/keras-contrib/blob/master/examples/improved_wgan.py
@@ -152,7 +145,6 @@ def main():
                 # batch_size x noise_size x 1 x 1
                 batch_size = 16
                 noise_size = 100
-                sampled_noise = sample_noise(batch_size, noise_size)
 
                 #print('G_Time:', end - start)
 
