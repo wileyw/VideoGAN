@@ -25,7 +25,6 @@ import loss_funs
 dtype = config.dtype
 
 VIDEO_GAN = True
-VANILLA_GAN = not VIDEO_GAN
 
 def save_samples(generated_images, iteration, prefix):
     import scipy
@@ -93,21 +92,13 @@ def main():
     loss_fp = open('losses.csv', 'w')
 
     if VIDEO_GAN:
-        # TODO: Remove logic.
-        if False:
-            video_d_net = vanilla_gan.video_gan.Discriminator()
-            video_d_net.type(dtype)
+        video_d_net = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
+            conv_layer_fms_list=SCALE_CONV_FSM_D,
+            scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
+        video_d_net.type(dtype)
 
-            video_g_net = vanilla_gan.video_gan.Generator()
-            video_g_net.type(dtype)
-        else:
-            video_d_net = d_net.DiscriminatorModel(kernel_sizes_list=SCALE_KERNEL_SIZES_D,
-                conv_layer_fms_list=SCALE_CONV_FSM_D,
-                scale_fc_layer_sizes_list=SCALE_FC_LAYER_SIZES_D)
-            video_d_net.type(dtype)
-
-            video_g_net = vanilla_gan.video_gan.VideoGANGenerator()
-            video_g_net.type(dtype)
+        video_g_net = vanilla_gan.video_gan.VideoGANGenerator()
+        video_g_net.type(dtype)
 
         video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
         video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
@@ -127,8 +118,6 @@ def main():
                 clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1)).type(dtype)
                 clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1)).type(dtype)
 
-
-            if VIDEO_GAN:
                 video_d_optimizer.zero_grad()
                 video_g_optimizer.zero_grad()
 
@@ -159,10 +148,6 @@ def main():
                 video_d_optimizer.zero_grad()
                 video_d_loss_real.backward()
                 video_d_optimizer.step()
-
-                #video_d_loss.backward()
-                #video_d_optimizer.step()
-                # video_d_loss_real.backward()
 
                 # batch_size x noise_size x 1 x 1
                 batch_size = 16
