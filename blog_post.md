@@ -3,6 +3,13 @@
 ## Overview
 We reimplemented a Video GAN Neural Network in order to generate synthetic Pacman images. In this project, we explore generating video frames as opposed to generating a single image.
 
+## Motivation
+Most common Computer Vision algorithms such as Image Classification, Object Detection, Semantic Segmentation operate primarily on individual images. When we first started this project, we were not familiar with the common techniques for processing video. One of our motivations for starting this project was to learn and become familiar with applying Deep Learning to process video.
+
+In addition to processing videos, we also wanted to take a project that employed GANs (Generative Adversarial Networks). Within Deep Learning, GANs are an ever increasingly popular topic able to generate amazingly high quality image samples.
+
+We wanted to combine both Video Processing and GANs into a single project we're calling VideoGAN.
+
 ## Discriminator
 
 ## Generator
