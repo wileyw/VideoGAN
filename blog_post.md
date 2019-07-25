@@ -33,5 +33,8 @@ VideoGAN is a Generative Adversarial Network so we use the Adversarial Loss as o
 ## Future Steps
 As the number of history steps gets larger, stacking the different images becomes inefficient. As a future step, implementing 3D convolutions where a convolution operation is applied along the temporal dimension is a way to improve video generation.
 
+## Conclusion
+In this post, we describe how we trained a Generative Adversarial Network to predict the next frame given a history of past frames.
+
 ## Resources
 https://arxiv.org/pdf/1511.05440.pdf
