@@ -16,7 +16,9 @@ CROP_HEIGHT = 32
 CROP_WIDTH = 32
 DTYPE = config.dtype
 
+
 def crop_batch(images, fw, fh, cw, ch):
+    images = images[0]
     batch = []
     for i in range(int(np.ceil(fw/cw))):
         for j in range(int(np.ceil(fh/ch))):
@@ -35,27 +37,42 @@ def crop_batch(images, fw, fh, cw, ch):
     return batch
 
 
-def reconstruct_frame(generated_images, fw, fh, ch, cw):
-    out = np.empty([fw, fh, 3])
+# def reconstruct_frame(generated_images, fw, fh, ch, cw):
+#     out = np.empty([fw, fh, 3])
 
-    num_images, channels = generated_images.shape[:2]
-    ncols = int(np.ceil(fw/cw))
-    nrows = int(np.ceil(fh/ch))
-    for i in range(nrows):
-        for j in range(ncols):
-            x = (i+1)*cw
-            x1 = cw
-            if x > fw:
-                x1 = fw - (i * cw)
-                x = fw
-            y = (j+1)*ch
-            y1 = ch
-            if y > fh:
-                y1 = fh - (j * ch)
-                y = fh
-            print(i*cw, x, x1, j*ch, y, y1)
-            out[i*cw:x, j*ch:y, :] = generated_images[i*ncols+j].transpose(1, 2, 0)[:x1, :y1, :]
-    return out
+#     num_images, channels = generated_images.shape[:2]
+#     ncols = int(np.ceil(fw/cw))
+#     nrows = int(np.ceil(fh/ch))
+#     for i in range(nrows):
+#         for j in range(ncols):
+#             x = (i+1)*cw
+#             x1 = cw
+#             if x > fw:
+#                 x1 = fw - (i * cw)
+#                 x = fw
+#             y = (j+1)*ch
+#             y1 = ch
+#             if y > fh:
+#                 y1 = fh - (j * ch)
+#                 y = fh
+#             print(i*cw, x, x1, j*ch, y, y1)
+#             out[i*cw:x, j*ch:y, :] = generated_images[i*ncols+j].transpose(1, 2, 0)[:x1, :y1, :]
+#     return out
+
+
+def reconstruct_frame(image_batch):
+    generated_images = image_batch.data.cpu().numpy()
+
+    num_images, channels, cell_h, cell_w = generated_images.shape
+    ncols = int(np.sqrt(num_images))
+    nrows = int(np.math.floor(num_images / float(ncols)))
+    result = np.zeros((cell_h * nrows, cell_w * ncols, channels), dtype=generated_images.dtype)
+    for i in range(0, nrows):
+        for j in range(0, ncols):
+            result[i*cell_h:(i+1)*cell_h, j*cell_w:(j+1)*cell_w, :] = generated_images[i*ncols+j].transpose(1, 2, 0)
+
+    return result
+
 
 def save_to_video(frames, video_filename):
     video = cv2.VideoWriter(video_filename, -1,
@@ -80,7 +97,6 @@ def main():
         default='Ms_Pacman/Test',
         help='input dir of training to take random images from')
 
-
     args = parser.parse_args()
 
     # Load generator.
@@ -89,16 +105,17 @@ def main():
     generator.eval()
 
     # Load input seed.
-    frames = data_util.get_full_clips(args.input_dir, HIST_LEN, 1)
-    frame_w, frame_h = frames[0].shape
+    frames = data_util.get_full_clips(args.input_dir, HIST_LEN-1, 1)
+    frame_w, frame_h = frames[0].shape[0:2]
 
     # Set initial frames.
     input_frames = data_util.denormalize_frames(frames)
-    input_batched = crop_batch(frames, frame_w, frame_h, CROP_WIDTH, CROP_HEIGHT)
+    input_batched = crop_batch(frames, frame_w, frame_h,
+                               CROP_WIDTH, CROP_HEIGHT)
 
     # Initialize output frames.
-    output_frames = [input_frames[:,:,:3], input_frames[:,:,3:6],
-                     input_frames[:,:,6:9], input_frames[:,:,9:]]
+    output_frames = [input_frames[:, :, :3], input_frames[:, :, 3:6],
+                     input_frames[:, :, 6:9], input_frames[:, :, 9:]]
 
     # Run inference for length of recursions.
     for i in range(NUM_RECURSIONS):
@@ -108,7 +125,8 @@ def main():
         input_batched_tensor = torch.tensor(np.rollaxis(input_batched, 3, 1)).type(DTYPE)
         result = generator(input_batched_tensor).detach().numpy()
 
-        result_reconst = reconstruct_frame(result, frame_w, frame_h, CROP_WIDTH, CROP_HEIGHT)
+        # result_reconst = reconstruct_frame(result, frame_w, frame_h, CROP_WIDTH, CROP_HEIGHT)
+        result_reconst = reconstruct_frame(result)
         print(result_reconst.shape)
         result_denorm = data_util.denormalize_frames(result_reconst)
         output_frames.append(result_denorm)
@@ -120,6 +138,7 @@ def main():
     for i, frame in enumerate(output_frames):
         cv2.imwrite('test_{}.png'.format(i), frame)
     save_to_video(output_frames, args.video_filename)
+
 
 if __name__ == '__main__':
     main()
