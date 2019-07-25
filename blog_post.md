@@ -23,7 +23,7 @@ Here is the [direct link to the Pacman dataset](https://drive.google.com/open?id
 The generator accepts a history of 4 frames to predict an unknown 5th frame. The history of 4 frames is stacked together as input to the Generator network. Because the input is a series of frames, the generator network structure is an encoder/decoder network. Because the input is a series of frames and not a noise vector, the generator may be more robust to mode collapse.
 
 ### Generator Initialization
-We initialize our Generator network with xavier initialization. One of the interesting observations using the encoding/decoding network rather than random noise as in the traditional GAN is that the input data is visible in the output image even before doing any optimization.
+We initialize our Generator network with xavier initialization. One of the interesting observations using the encoding/decoding network rather than random noise as in the traditional GAN is that the input data is visible in the output image even before doing any optimization. This observation may suggest that there is a high signal-to-noise ratio in the network meaning the network may be easier to train.
 
 ## Loss Function
 
