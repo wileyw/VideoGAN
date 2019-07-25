@@ -60,16 +60,28 @@ def crop_batch(images, fw, fh, cw, ch):
 #     return out
 
 
-def reconstruct_frame(image_batch):
-    generated_images = image_batch.data.cpu().numpy()
+def reconstruct_frame(image_batch, out_w, out_h):
+    generated_images = image_batch
 
     num_images, channels, cell_h, cell_w = generated_images.shape
-    ncols = int(np.sqrt(num_images))
-    nrows = int(np.math.floor(num_images / float(ncols)))
+    nrows = int(np.ceil(out_h/cell_h))
+    ncols = int(np.ceil(out_w/cell_w))
     result = np.zeros((cell_h * nrows, cell_w * ncols, channels), dtype=generated_images.dtype)
-    for i in range(0, nrows):
-        for j in range(0, ncols):
-            result[i*cell_h:(i+1)*cell_h, j*cell_w:(j+1)*cell_w, :] = generated_images[i*ncols+j].transpose(1, 2, 0)
+    for i in range(nrows):
+        for j in range(ncols):
+            x = cell_w
+            if ((i+1) * cell_w) > out_w:
+                x = out_w - (i * cell_w)
+            y = cell_h
+            if ((j+1) * cell_h) > out_h:
+                y = out_h - (j * cell_h)
+            img_patch = generated_images[i * ncols + j].transpose(1, 2, 0)
+            print(img_patch.shape, x, y, i, j, i * ncols + j)
+            print(i * cell_h, min(out_h, (i + 1) * cell_h),
+                  j * cell_w, min(out_w, (j + 1) * cell_w),)
+            result[i * cell_h: min(out_h, (i + 1) * cell_h),
+                   j * cell_w: min(out_w, (j + 1) * cell_w),
+                   :] = img_patch[:x, :y, :]
 
     return result
 
@@ -106,6 +118,7 @@ def main():
 
     # Load input seed.
     frames = data_util.get_full_clips(args.input_dir, HIST_LEN-1, 1)
+    print(frames.shape)
     frame_w, frame_h = frames[0].shape[0:2]
 
     # Set initial frames.
@@ -120,13 +133,14 @@ def main():
     # Run inference for length of recursions.
     for i in range(NUM_RECURSIONS):
         print('{} of {} frames'.format(i + 1, NUM_RECURSIONS))
-        print(input_batched.shape)
+        # print(input_batched.shape)
         # Run inference and reconstruct frame.
         input_batched_tensor = torch.tensor(np.rollaxis(input_batched, 3, 1)).type(DTYPE)
         result = generator(input_batched_tensor).detach().numpy()
+        print(result.shape)
 
         # result_reconst = reconstruct_frame(result, frame_w, frame_h, CROP_WIDTH, CROP_HEIGHT)
-        result_reconst = reconstruct_frame(result)
+        result_reconst = reconstruct_frame(result, frame_w, frame_h)
         print(result_reconst.shape)
         result_denorm = data_util.denormalize_frames(result_reconst)
         output_frames.append(result_denorm)
