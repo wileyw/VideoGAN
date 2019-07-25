@@ -10,6 +10,13 @@ In addition to processing videos, we also wanted to take a project that employed
 
 We wanted to combine both Video Processing and GANs into a single project we're calling VideoGAN.
 
+## Dataset
+For our dataset, we use frames from the Pacman video game. For our problem, we create a Neural Network that takes a history of N frames to predict an unknown N + 1th frame.
+
+We obtained the Pacman dataset from this github [repository](https://github.com/dyelax/Adversarial_Video_Generation).
+
+Here is the [direct link to the Pacman dataset](https://drive.google.com/open?id=0Byf787GZQ7KvV25xMWpWbV9LdUU).
+
 ## Discriminator
 
 ## Generator
@@ -19,6 +26,9 @@ The generator accepts a history of 4 frames to predict an unknown 5th frame. The
 We initialize our Generator network with xavier initialization. One of the interesting observations using the encoding/decoding network rather than random noise as in the traditional GAN is that the input data is visible in the output image even before doing any optimization.
 
 ## Loss Function
+
+### Adversarial Loss Function
+VideoGAN is a Generative Adversarial Network so we use the Adversarial Loss as one of the loss functions for predicting the next frame. A GAN consists of a Discriminator and a Generator that compete against each other to produce the next frame. The Generator takes a history of N frames to predict the next frame. The Discriminator tries to determine whether the generated frame is real or fake.
 
 ## Future Steps
 As the number of history steps gets larger, stacking the different images becomes inefficient. As a future step, implementing 3D convolutions where a convolution operation is applied along the temporal dimension is a way to improve video generation.
