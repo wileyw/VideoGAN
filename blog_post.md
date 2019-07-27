@@ -18,6 +18,7 @@ We obtained the Pacman dataset from this github [repository](https://github.com/
 Here is the [direct link to the Pacman dataset](https://drive.google.com/open?id=0Byf787GZQ7KvV25xMWpWbV9LdUU).
 
 ## Discriminator
+The discriminator tries to determine whether an image is real or fake by giving the generated images a score between 0 and 1.
 
 ## Generator
 The generator accepts a history of 4 frames to predict an unknown 5th frame. The history of 4 frames is stacked together as input to the Generator network. Because the input is a series of frames, the generator network structure is an encoder/decoder network. Because the input is a series of frames and not a noise vector, the generator may be more robust to mode collapse.
