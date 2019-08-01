@@ -1,22 +1,22 @@
+import config
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
 import numpy as np
 
-import config
 
 dtype = config.dtype
 
 
-def combined_loss(gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1, l_num=2, alpha=2):
+def combined_loss(
+    gen_frames, gt_frames, d_preds, lam_adv=1, lam_lp=1, lam_gdl=1, l_num=2, alpha=2
+):
     """
-    Calculates the sum of the combined adversarial, lp and GDL losses in the given proportion. Used
-    for training the generative model.
+    Calculates the sum of the combined adversarial, lp and GDL losses in the given
+    proportion. Used for training the generative model.
     @param gen_frames: A list of tensors of the generated frames at each scale.
     @param gt_frames: A list of tensors of the ground truth frames at each scale.
-    @param d_preds: A list of tensors of the classifications made by the discriminator model at each
-                    scale.
+    @param d_preds: A list of tensors of the classifications made by the discriminator
+    model at each scale.
     @param lam_adv: The percentage of the adversarial loss to use in the combined loss.
     @param lam_lp: The percentage of the lp loss to use in the combined loss.
     @param lam_gdl: The percentage of the GDL loss to use in the combined loss.
@@ -65,16 +65,24 @@ def gdl_loss(gen_frames, gt_frames, alpha):
     @return: The GDL loss.
     """
     filter_x_values = np.array(
-        [[[[-1, 1, 0]], [[0, 0, 0]], [[0, 0, 0]]],
-        [[[0, 0, 0]], [[-1, 1, 0]], [[0, 0, 0]]],
-        [[[0, 0, 0]], [[0, 0, 0]], [[-1, 1, 0]]]], dtype=np.float32)
+        [
+            [[[-1, 1, 0]], [[0, 0, 0]], [[0, 0, 0]]],
+            [[[0, 0, 0]], [[-1, 1, 0]], [[0, 0, 0]]],
+            [[[0, 0, 0]], [[0, 0, 0]], [[-1, 1, 0]]],
+        ],
+        dtype=np.float32,
+    )
     filter_x = nn.Conv2d(3, 3, (1, 3), padding=(0, 1))
     filter_x.weight = nn.Parameter(torch.from_numpy(filter_x_values))
 
     filter_y_values = np.array(
-        [[[[-1], [1], [0]], [[0], [0], [0]], [[0], [0], [0]]],
-        [[[0], [0], [0]], [[-1], [1], [0]], [[0], [0], [0]]],
-        [[[0], [0], [0]], [[0], [0], [0]], [[-1], [1], [0]]]], dtype=np.float32)
+        [
+            [[[-1], [1], [0]], [[0], [0], [0]], [[0], [0], [0]]],
+            [[[0], [0], [0]], [[-1], [1], [0]], [[0], [0], [0]]],
+            [[[0], [0], [0]], [[0], [0], [0]], [[-1], [1], [0]]],
+        ],
+        dtype=np.float32,
+    )
     filter_y = nn.Conv2d(3, 3, (3, 1), padding=(1, 0))
     filter_y.weight = nn.Parameter(torch.from_numpy(filter_y_values))
 
@@ -96,7 +104,8 @@ def gdl_loss(gen_frames, gt_frames, alpha):
 
 def adv_loss(preds, labels):
     """
-    Calculates the sum of BCE losses between the predicted classifications and true labels.
+    Calculates the sum of BCE losses between the predicted classifications
+    and true labels.
     @param preds: The predicted classifications at each scale.
     @param labels: The true labels. (Same for every scale).
     @return: The adversarial loss.
