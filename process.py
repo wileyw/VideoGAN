@@ -123,6 +123,7 @@ def main():
 
             print(out_str)
             loss_fp.write(out_str)
+            loss_fp.flush()
             torch.save(video_g_net.state_dict(), "generator_net.pth.tmp")
         count += 1
 
