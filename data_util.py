@@ -70,7 +70,7 @@ def get_train_batch(train_dir, num_clips, batch_size, frame_w, frame_h, hist_len
     clips = np.empty(
         [batch_size, frame_w, frame_h, (3 * (hist_len + 1))], dtype=np.float32
     )
-    for i in xrange(batch_size):
+    for i in range(batch_size):
         path = train_dir + str(np.random.choice(num_clips)) + ".npz"
         clip = np.load(path)["arr_0"]
 
@@ -84,11 +84,13 @@ def get_test_batch(test_dir, test_batch_size, num_rec_out=1):
     Gets a clip from the test dataset.
 
     @param test_batch_size: The number of clips.
-    @param num_rec_out: The number of outputs to predict. Outputs > 1 are computed recursively,
-                        using the previously-generated frames as input. Default = 1.
+    @param num_rec_out: The number of outputs to predict. Outputs > 1 are computed
+                        recursively, using the previously-generated frames as input.
+                        Default = 1.
 
     @return: An array of shape:
-             [test_batch_size, c.TEST_HEIGHT, c.TEST_WIDTH, (3 * (c.HIST_LEN + num_rec_out))].
+             [test_batch_size, c.TEST_HEIGHT,
+              c.TEST_WIDTH, (3 * (c.HIST_LEN + num_rec_out))].
              A batch of frame sequences with values normalized in range [-1, 1].
     """
     return get_full_clips(test_dir, test_batch_size, num_rec_out=num_rec_out)

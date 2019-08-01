@@ -16,14 +16,27 @@ SCALE_CONV_FMS_D = [
     [3, 128, 256, 512, 128],
 ]
 # kernel sizes for each convolution of each scale network in the discriminator model
-SCALE_KERNEL_SIZES_D = [[3], [3, 3, 3], [5, 5, 5], [7, 7, 5, 5]]
+
+# fmt: off
+SCALE_KERNEL_SIZES_D = [
+    [3],
+    [3, 3, 3],
+    [5, 5, 5],
+    [7, 7, 5, 5]
+]
+
 # layer sizes for each fully-connected layer of each scale network
 # in the discriminator model layer connecting conv to fully-connected is dynamically
 # generated when creating the model
-SCALE_FC_LAYER_SIZES_D = [[512, 256, 1], [1024, 512, 1], [1024, 512, 1], [1024, 512, 1]]
+SCALE_FC_LAYER_SIZES_D = [
+    [512, 256, 1],
+    [1024, 512, 1],
+    [1024, 512, 1],
+    [1024, 512, 1],
+]
+# fmt: on
 
 
-# TODO: Not used, remove?
 class DScaleNet(nn.Module):
     def __init__(
         self, img_height, img_width, kernel_sizes, conv_layer_fms, scale_fc_layer_sizes
