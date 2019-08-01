@@ -40,7 +40,7 @@ def main():
 
     video_d_net = d_net.DiscriminatorModel(
         kernel_sizes_list=d_net.SCALE_KERNEL_SIZES_D,
-        conv_layer_fms_list=d_net.SCALE_CONV_FSM_D,
+        conv_layer_fms_list=d_net.SCALE_CONV_FMS_D,
         scale_fc_layer_sizes_list=d_net.SCALE_FC_LAYER_SIZES_D,
     )
     video_d_net.type(dtype)
