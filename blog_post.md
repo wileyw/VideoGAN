@@ -1,6 +1,8 @@
 # Blog Post
 
 ## 1. Overview
+In this post, we reimplemented the video generation network, [Deep Multi-Scale Video Prediction Beyond](https://arxiv.org/pdf/1511.05440.pdf).
+
 We reimplemented a Video GAN Neural Network in order to generate synthetic Pacman images. In this project, we explore generating video frames as opposed to generating a single image.
 
 ## 2. Motivation
