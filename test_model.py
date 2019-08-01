@@ -2,6 +2,7 @@ import config
 import numpy as np
 import os
 import scipy
+import scipy.misc
 import torch
 
 import data_loader
