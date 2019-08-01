@@ -105,9 +105,7 @@ def main():
         d_preds = video_d_net(video_images).type(
             dtype
         )  # TODO: Make sure this is working.
-        gt_frames = clips_y.type(
-            dtype
-        )  # TODO: make clips_y at different scales.
+        gt_frames = clips_y.type(dtype)  # TODO: make clips_y at different scales.
         gen_frames = video_images.type(
             dtype
         )  # TODO: make the generated frames multi scale.
