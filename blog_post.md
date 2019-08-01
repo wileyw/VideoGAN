@@ -20,19 +20,27 @@ Here is the [direct link to the Pacman dataset](https://drive.google.com/open?id
 ## Discriminator
 The discriminator tries to determine whether an image is real or fake by giving the generated images a score between 0 and 1.
 
+For this problem, the Discriminator will take as input either a real Pacman image or a generated Pacman image. The goal of the Discriminator is to give the real Pacman images a score of 1 and fake images a score of 0.
+
 ## Generator
 The generator accepts a history of 4 frames to predict an unknown 5th frame. The history of 4 frames is stacked together as input to the Generator network. Because the input is a series of frames, the generator network structure is an encoder/decoder network. Because the input is a series of frames and not a noise vector, the generator may be more robust to mode collapse.
 
 ### Generator Initialization
 We initialize our Generator network with xavier initialization. One of the interesting observations using the encoding/decoding network rather than random noise as in the traditional GAN is that the input data is visible in the output image even before doing any optimization. This observation may suggest that there is a high signal-to-noise ratio in the network meaning the network may be easier to train.
 
-## Loss Function
+## Loss Functions
 
 ### Adversarial Loss Function
 VideoGAN is a Generative Adversarial Network so we use the Adversarial Loss as one of the loss functions for predicting the next frame. A GAN consists of a Discriminator and a Generator that compete against each other to produce the next frame. The Generator takes a history of N frames to predict the next frame. The Discriminator tries to determine whether the generated frame is real or fake.
 
 ### Image Gradient Difference Loss (GDL)
 In addition to the Adversarial Loss Function, we implemented the Gradient Difference Loss to sharpen features in the generated image.
+
+### Combined Loss
+The resulting loss function combines both the Adversarial Loss Function and the Image Gradient Difference Loss function into a single loss function.
+
+## Training
+We combine the Discriminator, Generator, and the Loss function and alternate between training both networks. We train on a batch size of 16 using the Adam optimizer. The input image patchs that we train on is size 32x32 of image patchs that contain motion.
 
 ## Future Steps
 As the number of history steps gets larger, stacking the different images becomes inefficient. As a future step, implementing 3D convolutions where a convolution operation is applied along the temporal dimension is a way to improve video generation.
