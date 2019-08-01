@@ -1,4 +1,5 @@
 import os
+import scipy.misc
 import torch
 import numpy as np
 import torch.optim as optim
@@ -13,7 +14,6 @@ dtype = config.dtype
 
 
 def save_samples(generated_images, iteration, prefix):
-    import scipy
 
     generated_images = generated_images.data.cpu().numpy()
 
