@@ -8,7 +8,7 @@ import config
 import data_loader
 import d_net
 import loss_funs
-import video_gan
+import g_net
 
 dtype = config.dtype
 
@@ -45,7 +45,7 @@ def main():
     )
     video_d_net.type(dtype)
 
-    video_g_net = video_gan.VideoGANGenerator()
+    video_g_net = g_net.VideoGANGenerator()
     video_g_net.type(dtype)
 
     video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
