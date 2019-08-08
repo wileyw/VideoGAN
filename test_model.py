@@ -1,32 +1,17 @@
-import os
-import torch
-import torchvision
-import glob
-import numpy as np
-import torch.optim as optim
-import cv2
-import matplotlib
-import matplotlib.pyplot as plt
-
-from skimage import io, transform
-from skimage.transform import resize
-from torch.autograd import Variable
-
-import d_net
 import config
-import time
+import numpy as np
+import os
+import scipy
+import scipy.misc
+import torch
 
-import vanilla_gan
-import vanilla_gan.vanilla_gan
-import vanilla_gan.video_gan
 import data_loader
-import loss_funs
 
-from vanilla_gan.video_gan import VideoGANGenerator
+from video_gan import VideoGANGenerator
 
 
-MODEL_FILEPATH = 'generator_net.pth.tmp'
-NUM_RECURSIONS = 2# 64
+MODEL_FILEPATH = "generator_net.pth.tmp"
+NUM_RECURSIONS = 2  # 64
 HIST_LEN = 4
 CROP_HEIGHT = 32
 CROP_WIDTH = 32
@@ -34,21 +19,25 @@ DTYPE = config.dtype
 
 
 def save_samples(generated_images, iteration, prefix):
-    import scipy
+
     generated_images = generated_images.data.cpu().numpy()
 
     num_images, channels, cell_h, cell_w = generated_images.shape
     ncols = int(np.sqrt(num_images))
     nrows = int(np.math.floor(num_images / float(ncols)))
-    result = np.zeros((cell_h * nrows, cell_w * ncols, channels), dtype=generated_images.dtype)
+    result = np.zeros(
+        (cell_h * nrows, cell_w * ncols, channels), dtype=generated_images.dtype
+    )
     for i in range(0, nrows):
         for j in range(0, ncols):
-            result[i*cell_h:(i+1)*cell_h, j*cell_w:(j+1)*cell_w, :] = generated_images[i*ncols+j].transpose(1, 2, 0)
+            result[
+                i * cell_h : (i + 1) * cell_h, j * cell_w : (j + 1) * cell_w, :
+            ] = generated_images[i * ncols + j].transpose(1, 2, 0)
     grid = result
 
-    if not os.path.exists('output'):
-        os.makedirs('output')
-    scipy.misc.imsave('output/{}_{:05d}.jpg'.format(prefix, iteration), grid)
+    if not os.path.exists("output"):
+        os.makedirs("output")
+    scipy.misc.imsave("output/{}_{:05d}.jpg".format(prefix, iteration), grid)
 
 
 def test_model():
@@ -58,15 +47,13 @@ def test_model():
     video_g_net.load_state_dict(torch.load(MODEL_FILEPATH))
     video_g_net.eval()
 
-    max_size = len(os.listdir('train'))
-    pacman_dataloader = data_loader.DataLoader('train', min(max_size, 500000), 16, 32, 32, 4)
+    max_size = len(os.listdir("train"))
+    pacman_dataloader = data_loader.DataLoader(
+        "train", min(max_size, 500000), 16, 32, 32, 4
+    )
     clips_x, clips_y = pacman_dataloader.get_train_batch()
     clips_x = torch.tensor(np.rollaxis(clips_x, 3, 1))
     clips_y = torch.tensor(np.rollaxis(clips_y, 3, 1))
-
-    # batch_size x noise_size x 1 x 1
-    batch_size = 16
-    noise_size = 100
 
     video_images = video_g_net(clips_x)
 
@@ -77,5 +64,5 @@ def main():
     test_model()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
