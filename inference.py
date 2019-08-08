@@ -10,7 +10,7 @@ from vanilla_gan.video_gan import VideoGANGenerator
 
 
 MODEL_FILEPATH = 'generator_net.pth'
-NUM_RECURSIONS = 2# 64
+NUM_RECURSIONS = 64
 HIST_LEN = 4
 CROP_HEIGHT = 32
 CROP_WIDTH = 32
@@ -37,53 +37,21 @@ def crop_batch(images, fw, fh, cw, ch):
     return batch
 
 
-# def reconstruct_frame(generated_images, fw, fh, ch, cw):
-#     out = np.empty([fw, fh, 3])
-
-#     num_images, channels = generated_images.shape[:2]
-#     ncols = int(np.ceil(fw/cw))
-#     nrows = int(np.ceil(fh/ch))
-#     for i in range(nrows):
-#         for j in range(ncols):
-#             x = (i+1)*cw
-#             x1 = cw
-#             if x > fw:
-#                 x1 = fw - (i * cw)
-#                 x = fw
-#             y = (j+1)*ch
-#             y1 = ch
-#             if y > fh:
-#                 y1 = fh - (j * ch)
-#                 y = fh
-#             print(i*cw, x, x1, j*ch, y, y1)
-#             out[i*cw:x, j*ch:y, :] = generated_images[i*ncols+j].transpose(1, 2, 0)[:x1, :y1, :]
-#     return out
-
-
 def reconstruct_frame(image_batch, out_w, out_h):
     generated_images = image_batch
 
     num_images, channels, cell_h, cell_w = generated_images.shape
-    nrows = int(np.ceil(out_h/cell_h))
-    ncols = int(np.ceil(out_w/cell_w))
-    result = np.zeros((cell_h * nrows, cell_w * ncols, channels), dtype=generated_images.dtype)
+    nrows = int(np.ceil(out_w/cell_w))
+    ncols = int(np.ceil(out_h/cell_h))
+    result = np.zeros((cell_w * nrows, cell_h * ncols, channels), dtype=generated_images.dtype)
     for i in range(nrows):
         for j in range(ncols):
-            x = cell_w
-            if ((i+1) * cell_w) > out_w:
-                x = out_w - (i * cell_w)
-            y = cell_h
-            if ((j+1) * cell_h) > out_h:
-                y = out_h - (j * cell_h)
             img_patch = generated_images[i * ncols + j].transpose(1, 2, 0)
-            print(img_patch.shape, x, y, i, j, i * ncols + j)
-            print(i * cell_h, min(out_h, (i + 1) * cell_h),
-                  j * cell_w, min(out_w, (j + 1) * cell_w),)
-            result[i * cell_h: min(out_h, (i + 1) * cell_h),
-                   j * cell_w: min(out_w, (j + 1) * cell_w),
-                   :] = img_patch[:x, :y, :]
+            result[i * cell_w: (i + 1) * cell_w,
+                   j * cell_h: (j + 1) * cell_h,
+                   :] = img_patch
 
-    return result
+    return result[:out_w, :out_h, :]
 
 
 def save_to_video(frames, video_filename):
@@ -127,30 +95,27 @@ def main():
                                CROP_WIDTH, CROP_HEIGHT)
 
     # Initialize output frames.
-    output_frames = [input_frames[:, :, :3], input_frames[:, :, 3:6],
-                     input_frames[:, :, 6:9], input_frames[:, :, 9:]]
+    output_frames = [input_frames[0, :, :, :3], input_frames[0, :, :, 3:6],
+                     input_frames[0, :, :, 6:9], input_frames[0, :, :, 9:]]
 
     # Run inference for length of recursions.
     for i in range(NUM_RECURSIONS):
         print('{} of {} frames'.format(i + 1, NUM_RECURSIONS))
-        # print(input_batched.shape)
+
         # Run inference and reconstruct frame.
         input_batched_tensor = torch.tensor(np.rollaxis(input_batched, 3, 1)).type(DTYPE)
         result = generator(input_batched_tensor).detach().numpy()
-        print(result.shape)
 
-        # result_reconst = reconstruct_frame(result, frame_w, frame_h, CROP_WIDTH, CROP_HEIGHT)
+        # Post-process frame
         result_reconst = reconstruct_frame(result, frame_w, frame_h)
-        print(result_reconst.shape)
         result_denorm = data_util.denormalize_frames(result_reconst)
         output_frames.append(result_denorm)
 
-        # Pop first frame and add result to input.
-        input_batched = np.concatenate((input_batched, result), axis=-1)
+        # Setup next batch.
+        input_batched = np.concatenate((input_batched, result.transpose(0, 2, 3, 1)), axis=3)
         input_batched = input_batched[:, :, :, 3:]
 
-    for i, frame in enumerate(output_frames):
-        cv2.imwrite('test_{}.png'.format(i), frame)
+    # Save frames.
     save_to_video(output_frames, args.video_filename)
 
 
