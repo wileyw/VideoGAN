@@ -6,7 +6,7 @@ import numpy as np
 
 import config
 import data_util
-from vanilla_gan.video_gan import VideoGANGenerator
+from g_net import VideoGANGenerator
 
 
 MODEL_FILEPATH = 'generator_net.pth'
@@ -55,12 +55,13 @@ def reconstruct_frame(image_batch, out_w, out_h):
 
 
 def save_to_video(frames, video_filename):
-    video = cv2.VideoWriter(video_filename, -1,
-                            1, frames[0].shape[:2])
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    video = cv2.VideoWriter(video_filename, fourcc,
+                            20.0, frames[0].shape[:2])
     for frame in frames:
         video.write(frame)
-    cv2.destroyAllWindows()
     video.release()
+    cv2.destroyAllWindows()
 
 
 def main():
