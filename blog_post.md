@@ -48,7 +48,7 @@ We combine the Discriminator, Generator, and the Loss function and alternate bet
 As the number of history steps gets larger, stacking the different images becomes inefficient. As a future step, implementing 3D convolutions where a convolution operation is applied along the temporal dimension is a way to improve video generation.
 
 ## 9. Conclusion
-In this post, we describe how we trained a Generative Adversarial Network to predict the next frame given a history of past frames.
+In this post, we describe how we trained a Generative Adversarial Network to predict the next frame given a history of past frames. By successively generating the next frame, we can generate a new video not seen in the training set.
 
 ## 10. Resources
 https://arxiv.org/pdf/1511.05440.pdf
