@@ -48,8 +48,8 @@ def main():
     video_g_net = g_net.VideoGANGenerator()
     video_g_net.type(dtype)
 
-    video_d_optimizer = optim.Adam(video_d_net.parameters(), lr=0.0001)
-    video_g_optimizer = optim.Adam(video_g_net.parameters(), lr=0.0001)
+    video_d_optimizer = optim.SGD(video_d_net.parameters(), lr=0.0001)
+    video_g_optimizer = optim.SGD(video_g_net.parameters(), lr=0.0001)
 
     # Load Pacman dataset
     max_size = len(os.listdir("train"))
