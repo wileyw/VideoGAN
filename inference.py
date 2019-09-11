@@ -92,8 +92,10 @@ def main():
 
     # Set initial frames.
     input_frames = data_util.denormalize_frames(frames)
-    input_batched = crop_batch(frames, frame_w, frame_h,
-                               CROP_WIDTH, CROP_HEIGHT)
+    # input_batched = crop_batch(frames, frame_w, frame_h,
+    #                            CROP_WIDTH, CROP_HEIGHT)
+    input_batched = np.array([input_frames[0, :, :, :3], input_frames[0, :, :, 3:6],
+                              input_frames[0, :, :, 6:9], input_frames[0, :, :, 9:]])
 
     # Initialize output frames.
     output_frames = [input_frames[0, :, :, :3], input_frames[0, :, :, 3:6],
