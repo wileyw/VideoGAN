@@ -53,9 +53,7 @@ def main():
 
     # Load Pacman dataset
     max_size = len(os.listdir("train"))
-    pacman_dataloader = data_loader.DataLoader(
-        "train", min(max_size, 500000), 16, 32, 32, 4
-    )
+    pacman_dataloader = data_loader.DataLoader("train", max_size, 16, 32, 32, 4)
 
     count = 0
     for i in range(1, 5000):
@@ -123,7 +121,7 @@ def main():
 
             print(out_str)
             loss_fp.write(out_str)
-            loss_fp.write('\n')
+            loss_fp.write("\n")
             loss_fp.flush()
             torch.save(video_g_net.state_dict(), "generator_net.pth.tmp")
         count += 1
