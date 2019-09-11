@@ -55,9 +55,9 @@ def reconstruct_frame(image_batch, out_w, out_h):
 
 
 def save_to_video(frames, video_filename):
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
     video = cv2.VideoWriter(video_filename, fourcc,
-                            20.0, frames[0].shape[:2])
+                            20.0, (frames[0].shape[1], frames.shape[0]))
     for frame in frames:
         video.write(frame)
     video.release()
