@@ -222,6 +222,7 @@ class VideoGANGenerator(nn.Module):
 
     def forward(self, x):
         out = x.type(dtype)
+        print('x.shape is', x.shape())
 
         # TODO: Change the image size
         img1 = F.interpolate(out, size=(4, 4))
