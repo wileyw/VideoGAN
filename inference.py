@@ -55,13 +55,15 @@ def reconstruct_frame(image_batch, out_w, out_h):
 
 
 def save_to_video(frames, video_filename):
-    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-    video = cv2.VideoWriter(video_filename, fourcc,
-                            20.0, (frames[0].shape[1], frames.shape[0]))
-    for frame in frames:
-        video.write(frame)
-    video.release()
-    cv2.destroyAllWindows()
+#    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+#    video = cv2.VideoWriter(video_filename, fourcc,
+#                            20.0, (frames[0].shape[1], frames[0].shape[0]))
+    for i, frame in enumerate(frames):
+#        video.write(frame)
+        print(frame.shape)
+        cv2.imwrite(video_filename + '_{}.jpg'.format(i), frame)
+#    video.release()
+#    cv2.destroyAllWindows()
 
 
 def main():
@@ -93,6 +95,7 @@ def main():
 
     # Set initial frames.
     input_frames = data_util.denormalize_frames(frames)
+    print("input_frames.shape is", input_frames.shape)
     # input_batched = crop_batch(frames, frame_w, frame_h,
     #                            CROP_WIDTH, CROP_HEIGHT)
     input_batched = input_frames
@@ -109,18 +112,21 @@ def main():
 
         # Run inference and reconstruct frame.
         input_batched_tensor = torch.tensor(np.rollaxis(input_batched, 3, 1)).type(DTYPE)
-        result = generator(input_batched_tensor).detach().numpy()
+        result = generator(input_batched_tensor).detach().cpu().numpy()
+        print("generated image shape is", result.shape)
 
         # Post-process frame
-        result_reconst = reconstruct_frame(result, frame_w, frame_h)
-        result_denorm = data_util.denormalize_frames(result_reconst)
-        output_frames.append(result_denorm)
+        # result_reconst = reconstruct_frame(result, frame_w, frame_h)
+        result_denorm = data_util.denormalize_frames(result)
+        print(result_denorm.shape)
+        output_frames.append(result_denorm.transpose(0, 2, 3, 1))
+        print(type(output_frames[-1]))
 
         # Setup next batch.
         input_batched = np.concatenate((input_batched, result.transpose(0, 2, 3, 1)), axis=3)
         input_batched = input_batched[:, :, :, 3:]
 
-    # Save frames.
+    # Save frames
     save_to_video(output_frames, args.video_filename)
 
 
