@@ -119,7 +119,7 @@ def main():
         # result_reconst = reconstruct_frame(result, frame_w, frame_h)
         result_denorm = data_util.denormalize_frames(result)
         print(result_denorm.shape)
-        output_frames.append(result_denorm.transpose(0, 2, 3, 1))
+        output_frames.append(result_denorm.transpose(0, 2, 3, 1)[0])
         print(type(output_frames[-1]))
 
         # Setup next batch.
