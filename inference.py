@@ -87,7 +87,8 @@ def main():
 
     # Load input seed.
     frames = data_util.get_full_clips(args.input_dir, HIST_LEN-1, 1)
-    print(frames.shape)
+    frames = frames[:, 0:200, :, :];
+    print("frames.shape is", frames.shape)
     frame_w, frame_h = frames[0].shape[0:2]
 
     # Set initial frames.
